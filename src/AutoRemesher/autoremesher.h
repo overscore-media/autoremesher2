@@ -21,6 +21,7 @@
  */
 #ifndef AUTO_REMESHER_AUTO_REMESHER_H
 #define AUTO_REMESHER_AUTO_REMESHER_H
+#include <atomic>
 #include <vector>
 #include <cstddef>
 #include <map>
@@ -74,6 +75,18 @@ public:
         m_modelType = modelType;
     }
     
+    void setThreadCount(int threadCount)
+    {
+        m_threadCount = threadCount;
+    }
+
+    void setCancelFlag(std::atomic<bool> *flag)
+    {
+        m_cancelFlag = flag;
+    }
+
+    bool isCancelled() const;
+    
     const std::vector<Vector3> &remeshedVertices()
     {
         return m_remeshedVertices;
@@ -101,6 +114,8 @@ private:
     ModelType m_modelType = ModelType::Organic;
     AutoRemesherProgressHandler m_progressHandler = nullptr;
     void *m_tag = nullptr;
+    int m_threadCount = 0;
+    std::atomic<bool> *m_cancelFlag = nullptr;
     
     static double calculateAverageEdgeLength(const std::vector<Vector3> &vertices,
         const std::vector<std::vector<size_t>> &faces);

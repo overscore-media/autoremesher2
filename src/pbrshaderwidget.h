@@ -23,6 +23,7 @@
 #define AUTO_REMESHER_PBR_SHADER_WIDGET_H
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
+#include <QOpenGLShaderProgram>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 #include <QMatrix4x4>
@@ -67,10 +68,19 @@ public:
     bool isEnvironmentLightEnabled();
     void enableMove(bool enabled);
     void enableZoom(bool enabled);
+    void enablePan(bool enabled);
     void enableMousePicking(bool enabled);
     void setMoveAndZoomByWindow(bool byWindow);
     void disableCullFace();
     void setMoveToPosition(const QVector3D &moveToPosition);
+    void setBackgroundColor(const QVector3D &color);
+    void setModelDiffuseColor(const QVector3D &color);
+    void clearModelDiffuseColor();
+    bool isModelDiffuseColorEnabled() const;
+    const QVector3D &backgroundColor() const;
+    const QVector3D &modelDiffuseColor() const;
+    static QVector3D defaultBackgroundColor();
+    void recenterOnModel();
     bool inputMousePressEventFromOtherWidget(QMouseEvent *event);
     bool inputMouseMoveEventFromOtherWidget(QMouseEvent *event);
     bool inputWheelEventFromOtherWidget(QWheelEvent *event);
@@ -97,6 +107,14 @@ public slots:
     void setMousePickRadius(float radius);
     void reRender();
     void canvasResized();
+    void resetToDefaultView();
+    void setCompareMesh(PbrShaderMesh *mesh);
+    void clearCompareMesh();
+    void setCompareModeEnabled(bool enabled);
+    bool compareModeEnabled() const;
+    void setCompareSplit(float t);
+    float compareSplit() const;
+    bool compareSplitReady() const;
 protected:
     void initializeGL() override;
     void paintGL() override;
@@ -106,6 +124,8 @@ protected:
     void wheelEvent(QWheelEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
 private:
+    QMatrix4x4 buildWorldMatrix() const;
+    void drawCompareSplitDivider(int splitPx);
     int m_xRotation = m_defaultXRotation;
     int m_yRotation = m_defaultYRotation;
     int m_zRotation = m_defaultZRotation;
@@ -113,10 +133,12 @@ private:
     bool m_moveStarted = false;
     bool m_moveEnabled = true;
     bool m_zoomEnabled = true;
+    bool m_panEnabled = true;
     bool m_mousePickingEnabled = false;
     QVector3D m_mousePickTargetPositionInModelSpace;
     QPoint m_lastPos;
     PbrShaderMeshBinder m_meshBinder;
+    PbrShaderMeshBinder m_compareMeshBinder;
     QMatrix4x4 m_projection;
     QMatrix4x4 m_camera;
     QMatrix4x4 m_world;
@@ -134,6 +156,17 @@ private:
     QVector3D m_moveToPosition;
     bool m_moveAndZoomByWindow = true;
     bool m_enableCullFace = true;
+    QVector3D m_backgroundColor;
+    QVector3D m_modelDiffuseColor;
+    bool m_modelDiffuseColorEnabled = false;
+    bool m_compareModeEnabled = false;
+    bool m_hasCompareMesh = false;
+    float m_compareSplit = 0.5f;
+    bool m_isCoreProfile = false;
+    QOpenGLShaderProgram *m_lineProgram = nullptr;
+    QOpenGLVertexArrayObject m_lineOverlayVao;
+    QOpenGLBuffer m_lineOverlayBuffer;
+    bool m_lineOverlayVaoConfigured = false;
     void updateProjectionMatrix();
     void normalizeAngle(int &angle);
 public:

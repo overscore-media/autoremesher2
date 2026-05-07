@@ -28,6 +28,7 @@
 #include <CGAL/Polygon_mesh_processing/remesh.h>
 #include <CGAL/Polygon_mesh_processing/border.h>
 #include <CGAL/Polygon_mesh_processing/repair.h>
+#include <CGAL/Polygon_mesh_processing/detect_features.h>
 #include <boost/function_output_iterator.hpp>
 #include <AutoRemesher/Vector3>
 #include <AutoRemesher/IsotropicRemesher>

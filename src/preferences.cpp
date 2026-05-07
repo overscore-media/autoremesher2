@@ -20,6 +20,7 @@
  *  SOFTWARE.
  */
 #include "preferences.h"
+#include <QThread>
 
 Preferences &Preferences::instance()
 {
@@ -36,12 +37,57 @@ Preferences::Preferences()
 
 QSize Preferences::mainWindowSize() const
 {
-    return m_settings.value("mainWindowSize", QSize()).toSize();
+    return m_settings.value("mainWindowSize", QSize(1280, 720)).toSize();
 }
 
 void Preferences::setMainWindowSize(const QSize& size)
 {
     m_settings.setValue("mainWindowSize", size);
+}
+
+int Preferences::threadCount() const
+{
+    int stored = m_settings.value("threadCount", 1).toInt();
+    if (stored <= 0) {
+        stored = QThread::idealThreadCount();
+        if (stored <= 0) stored = 1;
+    }
+    return stored;
+}
+
+void Preferences::setThreadCount(int count)
+{
+    m_settings.setValue("threadCount", count);
+}
+
+int Preferences::trackVertCount() const
+{
+    return m_settings.value("trackVertCount", 0).toInt();
+}
+
+void Preferences::setTrackVertCount(int count)
+{
+    m_settings.setValue("trackVertCount", count);
+}
+
+int Preferences::trackFaceCount() const
+{
+    return m_settings.value("trackFaceCount", 0).toInt();
+}
+
+void Preferences::setTrackFaceCount(int count)
+{
+    m_settings.setValue("trackFaceCount", count);
+}
+
+bool Preferences::showCompareBar() const
+{
+    return m_settings.value("showCompareBar", true).toBool();
+}
+
+void Preferences::setShowCompareBar(bool show)
+{
+    m_settings.setValue("showCompareBar", show);
 }
 
 void Preferences::reset()

@@ -20,6 +20,7 @@
  *  SOFTWARE.
  */
 #include <limits>
+#include <mutex>
 #include <unordered_set>
 #include <unordered_map>
 #include <queue>
@@ -31,12 +32,17 @@
 #include <AutoRemesher/MeshSeparator>
 #include <tbb/parallel_for.h>
 #include <tbb/blocked_range.h>
-#include <tbb/tbb_thread.h>
 #include <geogram_report_progress.h>
 
 thread_local void *geogram_report_progress_tag;
 thread_local int geogram_report_progress_round;
 thread_local geogram_report_progress_handler geogram_report_progress_callback;
+
+// Geogram's OpenNL uses a single global nlCurrentContext (not thread-safe). Island
+// parameterization runs under TBB in parallel; serialize NL-backed Geogram work.
+namespace {
+std::mutex g_geogram_opennl_mutex;
+}
 
 #if AUTO_REMESHER_DEBUG
 #include <QDebug>
@@ -44,6 +50,11 @@ thread_local geogram_report_progress_handler geogram_report_progress_callback;
 
 namespace AutoRemesher
 {
+
+bool AutoRemesher::isCancelled() const
+{
+    return m_cancelFlag && m_cancelFlag->load(std::memory_order_relaxed);
+}
     
 const double AutoRemesher::m_defaultSharpEdgeDegrees = 90;
 
@@ -258,7 +269,9 @@ bool AutoRemesher::remesh()
         {
             for (size_t i = range.begin(); i != range.end(); ++i) {
                 auto &thread = (*m_parameterizationThreads)[i];
-                
+                if (thread.autoRemesher && thread.autoRemesher->isCancelled())
+                    return;
+
 #if AUTO_REMESHER_DEBUG
                 qDebug() << "Island[" << thread.islandIndex << "]: resampling...";
 #endif
@@ -282,18 +295,22 @@ bool AutoRemesher::remesh()
                     &triangles,
                     nullptr);
                 thread.parameterizer->setScaling(thread.island->scaling);
-                thread.parameterizer->parameterize();
-                
-                std::vector<std::vector<Vector2>> *uvs = thread.parameterizer->takeTriangleUvs();
+
+                std::vector<std::vector<Vector2>> *uvs = nullptr;
+                {
+                    std::lock_guard<std::mutex> lock(g_geogram_opennl_mutex);
+                    thread.parameterizer->parameterize();
+                    uvs = thread.parameterizer->takeTriangleUvs();
 #if AUTO_REMESHER_DEBUG
-                qDebug() << "Island[" << thread.islandIndex << "]: quad extracting...";
+                    qDebug() << "Island[" << thread.islandIndex << "]: quad extracting...";
 #endif
-                thread.remesher = new QuadExtractor(&vertices, 
-                    &triangles, 
-                    uvs);
-                if (!thread.remesher->extract()) {
-                    delete thread.remesher;
-                    thread.remesher = nullptr;
+                    thread.remesher = new QuadExtractor(&vertices, 
+                        &triangles, 
+                        uvs);
+                    if (!thread.remesher->extract()) {
+                        delete thread.remesher;
+                        thread.remesher = nullptr;
+                    }
                 }
 #if AUTO_REMESHER_DEBUG
                 if (nullptr != thread.remesher) {
@@ -308,8 +325,24 @@ bool AutoRemesher::remesh()
     private:
         std::vector<ParameterizationThread> *m_parameterizationThreads = nullptr;
     };
+    if (isCancelled()) {
+        m_remeshedVertices.clear();
+        m_remeshedQuads.clear();
+        if (nullptr != m_progressHandler)
+            m_progressHandler(m_tag, 1.0);
+        return false;
+    }
+
     tbb::parallel_for(tbb::blocked_range<size_t>(0, parameterizationThreads.size()),
         SurfaceParameterizer(&parameterizationThreads));
+
+    if (isCancelled()) {
+        m_remeshedVertices.clear();
+        m_remeshedQuads.clear();
+        if (nullptr != m_progressHandler)
+            m_progressHandler(m_tag, 1.0);
+        return false;
+    }
         
     for (size_t i = 0; i < parameterizationThreads.size(); ++i) {
         auto &thread = parameterizationThreads[i];

@@ -65,11 +65,15 @@ public:
 	void setMetalnessRoughnessAmbientOcclusionMapIdValue(int value);
 	void setMousePickEnabledValue(int value);
 	void setMousePickTargetPositionValue(const QVector3D &value);
-	void setMousePickRadiusValue(float value);
+    void setMousePickRadiusValue(float value);
+    void setMeshOpacityValue(float value);
 	void setEnvironmentIrradianceMapIdValue(int value);
 	void setEnvironmentIrradianceMapEnabledValue(int value);
-	void setEnvironmentSpecularMapIdValue(int value);
-	void setEnvironmentSpecularMapEnabledValue(int value);
+void setEnvironmentSpecularMapIdValue(int value);
+    void setEnvironmentSpecularMapEnabledValue(int value);
+    void setModelDiffuseColorValue(const QVector3D &value);
+    void setModelDiffuseColorEnabledValue(int value);
+    bool isModelDiffuseColorEnabled();
 private:
     bool m_isCoreProfile = false;
     int m_projectionMatrixLoc = 0;
@@ -88,6 +92,7 @@ private:
     int m_mousePickEnabledLoc = 0;
     int m_mousePickTargetPositionLoc = 0;
     int m_mousePickRadiusLoc = 0;
+    int m_meshOpacityLoc = 0;
     int m_environmentIrradianceMapIdLoc = 0;
     int m_environmentIrradianceMapEnabledLoc = 0;
     int m_environmentSpecularMapIdLoc = 0;
@@ -108,10 +113,13 @@ private:
 	int m_mousePickEnabledValue = -1;
 	QVector3D m_mousePickTargetPositionValue;
 	float m_mousePickRadiusValue = 0.0;
+	float m_meshOpacityValue = 1.0f;
 	int m_environmentIrradianceMapIdValue = -1;
 	int m_environmentIrradianceMapEnabledValue = -1;
-	int m_environmentSpecularMapIdValue = -1;
-	int m_environmentSpecularMapEnabledValue = -1;
+int m_environmentSpecularMapIdValue = -1;
+    int m_environmentSpecularMapEnabledValue = -1;
+    QVector3D m_modelDiffuseColorValue;
+    int m_modelDiffuseColorEnabledValue = 0;
 };
 
 #endif

@@ -30,11 +30,26 @@ class RenderMeshGenerator: public QObject
     Q_OBJECT
 public:
     RenderMeshGenerator(const std::vector<AutoRemesher::Vector3> &vertices,
-            const std::vector<std::vector<size_t>> &faces) :
+            const std::vector<std::vector<size_t>> &faces,
+            bool useFixedNormalization = false,
+            const AutoRemesher::Vector3 &fixedOrigin = AutoRemesher::Vector3(),
+            double fixedMaxLength = 1.0) :
         m_vertices(new std::vector<AutoRemesher::Vector3>(vertices)),
-        m_faces(new std::vector<std::vector<size_t>>(faces))
+        m_faces(new std::vector<std::vector<size_t>>(faces)),
+        m_useFixedNormalization(useFixedNormalization),
+        m_fixedOrigin(fixedOrigin),
+        m_fixedMaxLength(fixedMaxLength > 1e-30 ? fixedMaxLength : 1.0)
     {
     }
+
+    static void boundingNormalizationFactors(const std::vector<AutoRemesher::Vector3> &vertices,
+        AutoRemesher::Vector3 *origin,
+        double *maxLength);
+
+    static void combinedBoundingNormalizationFactors(const std::vector<AutoRemesher::Vector3> &vertsA,
+        const std::vector<AutoRemesher::Vector3> &vertsB,
+        AutoRemesher::Vector3 *origin,
+        double *maxLength);
     
     ~RenderMeshGenerator()
     {
@@ -59,10 +74,13 @@ private:
     std::vector<AutoRemesher::Vector3> *m_vertices = nullptr;
     std::vector<std::vector<size_t>> *m_faces = nullptr;
     PbrShaderMesh *m_renderMesh = nullptr;
-    
+    bool m_useFixedNormalization = false;
+    AutoRemesher::Vector3 m_fixedOrigin;
+    double m_fixedMaxLength = 1.0;
+
     void normalizeVertices();
-    static void calculateNormalizedFactors(const std::vector<AutoRemesher::Vector3> &vertices, 
-        AutoRemesher::Vector3 *origin, 
+    static void calculateNormalizedFactors(const std::vector<AutoRemesher::Vector3> &vertices,
+        AutoRemesher::Vector3 *origin,
         double *maxLength);
 };
 

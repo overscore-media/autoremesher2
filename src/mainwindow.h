@@ -21,23 +21,32 @@
  */
 #ifndef AUTO_REMESHER_MAIN_WINDOW_H
 #define AUTO_REMESHER_MAIN_WINDOW_H
+#include <cstdint>
 #include <QMainWindow>
 #include <QCloseEvent>
 #include <QShowEvent>
 #include <QString>
+#include <QSpinBox>
+#include <QComboBox>
+#include <QAction>
+#include <QDragEnterEvent>
+#include <QDropEvent>
+#include <QMimeData>
+#include <QLabel>
 #include <queue>
 #include <AutoRemesher/AutoRemesher>
 #include <AutoRemesher/Vector3>
 #include "pbrshaderwidget.h"
 
+class QEvent;
+
 class RenderMeshGenerator;
 class QuadMeshGenerator;
 class SpinnableAwesomeButton;
-class FloatNumberWidget;
 class QComboBox;
-#ifdef Q_OS_WIN32
-class QWinTaskbarButton;
-#endif
+class QToolBar;
+
+class SettingsDialog;
 
 class MainWindow : public QMainWindow
 {
@@ -47,7 +56,20 @@ public:
     {
         std::vector<AutoRemesher::Vector3> vertices;
         std::vector<std::vector<size_t>> faces;
+        bool useSharedNormalization = false;
+        AutoRemesher::Vector3 sharedOrigin;
+        double sharedMaxLength = 1.0;
+        enum Slot {
+            PrimaryMesh,
+            CompareMesh
+        } destination = PrimaryMesh;
+        uint64_t sceneGeneration = 0;
     };
+
+    float targetDensity() const { return m_targetDensity; }
+    float targetScaling() const { return m_targetScaling; }
+
+    void applyPreferencesFromDialog(SettingsDialog &dlg);
 
     MainWindow();
     ~MainWindow();
@@ -56,14 +78,15 @@ public:
 protected:
     void closeEvent(QCloseEvent *event);
     void showEvent(QShowEvent *event);
+    void dragEnterEvent(QDragEnterEvent *event) override;
+    void dragMoveEvent(QDragMoveEvent *event) override;
+    void dragLeaveEvent(QDragLeaveEvent *event) override;
+    void dropEvent(QDropEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
 private slots:
-    void showSupporters();
-    void showAcknowlegements();
-    void viewSource();
-    void gotoHomepage();
-    void reportIssues();
+    void showAcknowledgements();
     void showAbout();
-    void checkForUpdates();
+    void showHowToUse();
     void updateTitle();
     void loadModel();
     void saveMesh();
@@ -75,6 +98,22 @@ private slots:
     void quadMeshReady();
     void updateButtonStates();
     void updateProgress(float progress);
+    void setThreadCountFromSpinBox(int value);
+    void toggleStatsViewer(bool checked);
+    void showBackgroundColorDialog();
+    void showModelColorDialog();
+    void cancelRemesh();
+    void restartRemesh();
+    void resetToDefaultView();
+    void toggleShowStats(bool checked);
+    void updateStatsViewer();
+    void showPreferencesDialog();
+    void updateChromeVisibility();
+    void syncStatsButtonFromPanel(bool visible);
+    void syncCompareModeFromUi();
+    void syncCompareHandleGeometry();
+    void updateCompareSplitFromViewportX(int xInViewport);
+    bool shouldShowCompareControls() const;
 private:
     PbrShaderWidget *m_modelRenderWidget = nullptr;
     AutoRemesher::AutoRemesher *m_autoRemesher = nullptr;
@@ -90,17 +129,41 @@ private:
     QString m_currentFilename;
     RenderMeshGenerator *m_renderMeshGenerator = nullptr;
     std::queue<ResultMesh> m_renderQueue;
+    uint64_t m_sceneGeneration = 1;
+    ResultMesh::Slot m_activeRenderDestination = ResultMesh::PrimaryMesh;
+    uint64_t m_activeRenderJobSceneGeneration = 0;
     bool m_quadMeshResultIsDirty = false;
     QuadMeshGenerator *m_quadMeshGenerator = nullptr;
+    bool m_remeshCompletedSuccessfully = false;
+    SpinnableAwesomeButton *m_cancelRemeshButton = nullptr;
+    SpinnableAwesomeButton *m_restartRemeshButton = nullptr;
     SpinnableAwesomeButton *m_loadModelButton = nullptr;
     SpinnableAwesomeButton *m_saveMeshButton = nullptr;
-    FloatNumberWidget *m_targetTriangleCountWidget = nullptr;
-    FloatNumberWidget *m_targetScalingWidget = nullptr;
-    //QComboBox *m_modelTypeSelectBox = nullptr;
-    QComboBox *m_edgeScalingSelectBox = nullptr;
-#ifdef Q_OS_WIN32
-    QWinTaskbarButton *m_taskbarButton = nullptr;
-#endif
+    SpinnableAwesomeButton *m_resetViewButton = nullptr;
+    SpinnableAwesomeButton *m_toggleStatsButton = nullptr;
+    QAction *m_toolbarStatsAction = nullptr;
+    QAction *m_toolbarCancelAction = nullptr;
+    QAction *m_toolbarRestartAction = nullptr;
+    QAction *m_toolbarSaveAction = nullptr;
+    QAction *m_toolbarResetAction = nullptr;
+    QWidget *m_emptyStateOverlay = nullptr;
+    QWidget *m_dragDropOverlay = nullptr;
+    QWidget *m_viewportWrap = nullptr;
+    QWidget *m_compareSplitHandle = nullptr;
+    QLabel *m_compareLabelBefore = nullptr;
+    QLabel *m_compareLabelAfter = nullptr;
+    bool m_compareHandleDragging = false;
+    bool m_dragHighlightActive = false;
+    QAction *m_toggleStatsViewerAction = nullptr;
+    QAction *m_showStatsAction = nullptr;
+    QWidget *m_statsPanel = nullptr;
+    QToolBar *m_mainToolBar = nullptr;
+    QLabel *m_originalVertCountLabel = nullptr;
+    QLabel *m_originalFaceCountLabel = nullptr;
+    QLabel *m_remeshedVertCountLabel = nullptr;
+    QLabel *m_remeshedFaceCountLabel = nullptr;
+    QLabel *m_vertChangeLabel = nullptr;
+    QLabel *m_faceChangeLabel = nullptr;
 };
 
 #endif

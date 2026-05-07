@@ -34,3 +34,34 @@
 # Build folder
 build/
 build2/
+
+# CMake-installed zlib + oneTBB (see scripts/build-bundled-deps.sh)
+thirdparty/.artifacts/
+
+# AppImage output
+packaging/appimage/dist/
+
+# qmake / Make (regenerate with: qmake autoremesher.pro)
+Makefile
+.qmake.stash
+
+# Qt resource compiler output at project root (from resources.qrc, QtAwesome .qrc)
+/qrc_*.cpp
+
+# CMake build dir created by scripts/build-bundled-deps.sh (under .artifacts)
+thirdparty/.artifacts/onetbb-build/
+
+# Release binary from qmake
+/autoremesher
+
+# Qt Creator local settings
+*.pro.user
+*.pro.user.*
+
+# Git submodule directories
+/thirdparty/geogram
+/thirdparty/eigen
+/thirdparty/exploragram
+/thirdparty/libigl
+/thirdparty/zlib
+/thirdparty/onetbb

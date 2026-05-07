@@ -1,3 +1,13 @@
+2.0.0
+- Performance and stability improvements
+- Updated dependencies
+- UI refactoring
+- Model and background colour selection
+- Stats panel
+- Drag-and-drop
+- Before-and-after slider
+- CLI version
+
 1.0.0-beta.3
 - Remesh isolated meshes separately   
 - Improve quad extractor  

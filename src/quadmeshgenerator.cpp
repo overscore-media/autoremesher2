@@ -23,6 +23,11 @@
 #include <QDebug>
 #include "quadmeshgenerator.h"
 
+void QuadMeshGenerator::requestCancel()
+{
+    m_cancelRequested.store(true);
+}
+
 void QuadMeshGenerator::process()
 {
     QElapsedTimer timer;
@@ -49,6 +54,10 @@ static void reportProgressHandler(void *tag, float progress)
 
 void QuadMeshGenerator::generate()
 {
+    int threadCount = m_parameters.threadCount;
+
+    m_cancelRequested.store(false);
+    
     delete m_autoRemesher;
     m_autoRemesher = new AutoRemesher::AutoRemesher(m_vertices, m_triangles);
     if (m_parameters.scaling > 0)
@@ -58,6 +67,8 @@ void QuadMeshGenerator::generate()
     m_autoRemesher->setModelType(m_parameters.modelType);
     m_autoRemesher->setTag(this);
     m_autoRemesher->setProgressHandler(reportProgressHandler);
+    m_autoRemesher->setThreadCount(threadCount);
+    m_autoRemesher->setCancelFlag(&m_cancelRequested);
     if (!m_autoRemesher->remesh())
         return;
     

@@ -20,6 +20,7 @@
  *  SOFTWARE.
  */
 #include <QApplication>
+#include <QCoreApplication>
 #include <QDesktopWidget>
 #include <QStyleFactory>
 #include <QFontDatabase>
@@ -28,16 +29,55 @@
 #include <QSurfaceFormat>
 #include <QSettings>
 #include <QTranslator>
+#include <QIcon>
+#include <QGuiApplication>
 #include <geogram/basic/common.h>
 #include "mainwindow.h"
+#include "remeshcli.h"
 #include "theme.h"
 #include "version.h"
 #include "preferences.h"
 
-int main(int argc, char ** argv)
+namespace {
+
+bool argsContainCli(int argc, char **argv)
 {
+    for (int i = 1; i < argc; ++i) {
+        if (qstrcmp(argv[i], "--cli") == 0)
+            return true;
+    }
+    return false;
+}
+
+} // namespace
+
+int main(int argc, char **argv)
+{
+    if (argsContainCli(argc, argv)) {
+        QCoreApplication app(argc, argv);
+        QCoreApplication::setApplicationName(APP_NAME);
+        QCoreApplication::setApplicationVersion(APP_HUMAN_VER);
+        QCoreApplication::setOrganizationName(QStringLiteral("AutoRemesher"));
+        GEO::initialize();
+        return runRemeshCli(argc, argv);
+    }
+
     QApplication app(argc, argv);
-    
+
+    // Wayland uses the desktop entry id to resolve the panel/task switcher icon (not QWindowIcon).
+    QGuiApplication::setDesktopFileName(QStringLiteral("org.autoremesher.AutoRemesher"));
+
+    QIcon icon(":/autoremesher.png");
+    if (icon.isNull()) {
+        QIcon iconFile(QCoreApplication::applicationDirPath() + "/autoremesher.png");
+        if (!iconFile.isNull()) {
+            icon = iconFile;
+        }
+    }
+    if (!icon.isNull()) {
+        QApplication::setWindowIcon(icon);
+    }
+
     GEO::initialize();
 
     QSurfaceFormat format = QSurfaceFormat::defaultFormat();
@@ -62,8 +102,7 @@ int main(int argc, char ** argv)
     qApp->setPalette(darkPalette);
     
     QCoreApplication::setApplicationName(APP_NAME);
-    QCoreApplication::setOrganizationName(APP_COMPANY);
-    QCoreApplication::setOrganizationDomain(APP_HOMEPAGE_URL);
+    QCoreApplication::setOrganizationName(QStringLiteral("AutoRemesher"));
     
     QFont font;
     font.setWeight(QFont::Light);
@@ -74,6 +113,9 @@ int main(int argc, char ** argv)
     
     MainWindow *mainWindow = new MainWindow();
     mainWindow->setAttribute(Qt::WA_DeleteOnClose);
+    if (!icon.isNull()) {
+        mainWindow->setWindowIcon(icon);
+    }
     QSize size = Preferences::instance().mainWindowSize();
     if (size.isValid()) {
         mainWindow->resize(size);

@@ -27,13 +27,10 @@
 #include <QOpenGLPixelTransferOptions>
 #include "ddsfile.h"
 
-#ifndef _WIN32
 typedef quint32 DWORD;
 typedef quint32 UINT;
-#endif
 
-// DDS data struct copy from
-// https://docs.microsoft.com/en-us/windows/win32/direct3ddds/dx-graphics-dds-pguide
+// DDS pixel format header layout (FourCC and RGB bit masks).
 
 typedef struct {
     DWORD dwSize;

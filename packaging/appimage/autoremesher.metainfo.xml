@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.autoremesher.AutoRemesher</id>
+  <launchable type="desktop-id">org.autoremesher.AutoRemesher.desktop</launchable>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>AutoRemesher</name>
+  <summary>Automatic quad remeshing tool</summary>
+  <description>
+    <p>Automatic quad remeshing tool.</p>
+  </description>
+</component>

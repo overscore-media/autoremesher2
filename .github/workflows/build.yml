@@ -1,0 +1,85 @@
+name: Build AppImage
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            qtbase5-dev \
+            qtbase5-dev-tools \
+            qt5-qmake \
+            libqt5opengl5-dev \
+            libgmp-dev \
+            libmpfr-dev \
+            libopenvdb-dev \
+            libopenexr-dev \
+            libilmbase-dev \
+            libcgal-dev \
+            cmake \
+            build-essential
+
+      - name: Install linuxdeploy and Qt plugin
+        run: |
+          # Download main linuxdeploy
+          wget -O linuxdeploy-x86_64.AppImage "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
+          chmod +x linuxdeploy-x86_64.AppImage
+          ./linuxdeploy-x86_64.AppImage --appimage-extract
+          sudo mv squashfs-root /opt/linuxdeploy
+          
+          # Download the Qt plugin
+          wget -O linuxdeploy-plugin-qt-x86_64.AppImage "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage"
+          chmod +x linuxdeploy-plugin-qt-x86_64.AppImage
+          ./linuxdeploy-plugin-qt-x86_64.AppImage --appimage-extract
+          # Merge the plugin files into the same /opt/linuxdeploy directory
+          sudo cp -r squashfs-root/usr/bin/* /opt/linuxdeploy/usr/bin/
+          
+          echo "/opt/linuxdeploy/usr/bin" >> $GITHUB_PATH
+
+      - name: Bootstrap submodules
+        run: |
+          git submodule update --init --recursive
+          ./scripts/bootstrap-submodules.sh
+
+      - name: Build bundled dependencies
+        run: |
+          ./scripts/build-bundled-deps.sh
+
+      - name: Build project
+        run: |
+          qmake autoremesher.pro CONFIG+=release
+          make -j$(nproc)
+
+      - name: Package AppImage
+        run: |
+          ./packaging/appimage/package-appimage.sh ./autoremesher
+
+      - name: Upload AppImage artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: AutoRemesher-${{ github.sha }}-x86_64.AppImage
+          path: packaging/appimage/dist/AutoRemesher-x86_64.AppImage
+          retention-days: 30
+
+      - name: Upload release asset
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: packaging/appimage/dist/AutoRemesher-x86_64.AppImage
+          name: AutoRemesher-${{ github.ref_name }}-x86_64.AppImage

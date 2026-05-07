@@ -32,6 +32,14 @@ public:
     Preferences();
     QSize mainWindowSize() const;
     void setMainWindowSize(const QSize&);
+    int threadCount() const;
+    void setThreadCount(int count);
+    int trackVertCount() const;
+    void setTrackVertCount(int count);
+    int trackFaceCount() const;
+    void setTrackFaceCount(int count);
+    bool showCompareBar() const;
+    void setShowCompareBar(bool show);
 public slots:
     void reset();
 private:

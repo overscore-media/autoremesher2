@@ -101,6 +101,7 @@ uniform int ambientOcclusionMapEnabled;
 uniform int mousePickEnabled;
 uniform vec3 mousePickTargetPosition;
 uniform float mousePickRadius;
+uniform float meshOpacity;
 
 const int MAX_LIGHTS = 8;
 const int TYPE_POINT = 0;
@@ -411,4 +412,5 @@ void main()
                                       vert,
                                       normalize(cameraPos - vert),
                                       normal);
+    gl_FragColor.a *= meshOpacity;
 }

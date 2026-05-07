@@ -270,11 +270,13 @@ void PbrShaderMeshBinder::paint(PbrShaderProgram *program)
     program->setMetalnessRoughnessAmbientOcclusionMapIdValue(2);
     program->setEnvironmentIrradianceMapIdValue(3);
     program->setEnvironmentSpecularMapIdValue(4);
+    bool previousModelDiffuseColorEnabled = false;
     if (m_showWireframe) {
         if (m_renderEdgeVertexCount > 0) {
+            previousModelDiffuseColorEnabled = program->isModelDiffuseColorEnabled();
+            program->setModelDiffuseColorEnabledValue(0);
             QOpenGLVertexArrayObject::Binder vaoBinder(&m_vaoEdge);
 			QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
-            // glDrawArrays GL_LINES crashs on Mesa GL
             if (program->isCoreProfile()) {
                 program->setTextureEnabledValue(0);
                 program->setNormalMapEnabledValue(0);
@@ -286,6 +288,9 @@ void PbrShaderMeshBinder::paint(PbrShaderProgram *program)
                     program->setEnvironmentSpecularMapEnabledValue(0);
                 }
                 f->glDrawArrays(GL_LINES, 0, m_renderEdgeVertexCount);
+            }
+            if (previousModelDiffuseColorEnabled) {
+                program->setModelDiffuseColorEnabledValue(1);
             }
         }
     }
@@ -408,4 +413,24 @@ void PbrShaderMeshBinder::hideWireframe()
 bool PbrShaderMeshBinder::isWireframeVisible()
 {
     return m_showWireframe;
+}
+
+QVector3D PbrShaderMeshBinder::modelCentroid()
+{
+    if (nullptr == m_mesh)
+        return QVector3D();
+    const auto &vertices = m_mesh->vertices();
+    if (vertices.empty())
+        return QVector3D();
+    QVector3D sum(0, 0, 0);
+    for (const auto &v : vertices) {
+        sum += QVector3D(v.x(), v.y(), v.z());
+    }
+    m_modelCentroid = sum / vertices.size();
+    return m_modelCentroid;
+}
+
+bool PbrShaderMeshBinder::hasTriangleGeometry() const
+{
+    return m_renderTriangleVertexCount > 0;
 }

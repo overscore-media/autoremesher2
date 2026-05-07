@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=AutoRemesher
+Icon=org.autoremesher.AutoRemesher
+Exec=autoremesher
+Categories=Graphics;
+Comment=Automatic quad remeshing tool
+StartupWMClass=autoremesher

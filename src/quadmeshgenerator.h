@@ -21,6 +21,7 @@
  */
 #ifndef AUTO_REMESHER_QUAD_MESH_GENERATOR_H
 #define AUTO_REMESHER_QUAD_MESH_GENERATOR_H
+#include <atomic>
 #include <QObject>
 #include <AutoRemesher/AutoRemesher>
 
@@ -33,6 +34,7 @@ public:
         double scaling = 0.0;
         size_t targetTriangleCount = 0;
         AutoRemesher::ModelType modelType = AutoRemesher::ModelType::Organic;
+        int threadCount = 0;
     };
 
     QuadMeshGenerator(const std::vector<AutoRemesher::Vector3> &vertices,
@@ -68,6 +70,8 @@ public:
         return remeshedQuads;
     }
 
+    void requestCancel();
+
     void generate();
     void emitProgress(float progress);
     
@@ -84,6 +88,7 @@ private:
     std::vector<std::vector<size_t>> *m_remeshedQuads = nullptr;
     AutoRemesher::AutoRemesher *m_autoRemesher = nullptr;
     Parameters m_parameters;
+    std::atomic<bool> m_cancelRequested{false};
 };
 
 #endif

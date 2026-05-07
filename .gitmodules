@@ -1,0 +1,39 @@
+[submodule "thirdparty/eigen"]
+	path = thirdparty/eigen
+	url = https://gitlab.com/libeigen/eigen.git
+    ignore = all
+
+[submodule "thirdparty/libigl"]
+	path = thirdparty/libigl
+	url = https://github.com/libigl/libigl.git
+    ignore = all
+
+[submodule "thirdparty/QtAwesome"]
+	path = thirdparty/QtAwesome
+	url = https://github.com/gamecreature/QtAwesome.git
+    ignore = all
+
+[submodule "thirdparty/QtWaitingSpinner"]
+	path = thirdparty/QtWaitingSpinner
+	url = https://github.com/snowwlex/QtWaitingSpinner.git
+    ignore = all
+
+[submodule "thirdparty/geogram"]
+	path = thirdparty/geogram
+	url = https://github.com/BrunoLevy/geogram.git
+    ignore = all
+
+[submodule "thirdparty/exploragram"]
+	path = thirdparty/exploragram
+	url = https://github.com/BrunoLevy/exploragram.git
+    ignore = all
+
+[submodule "thirdparty/onetbb"]
+	path = thirdparty/onetbb
+	url = https://github.com/uxlfoundation/oneTBB.git
+    ignore = all
+
+[submodule "thirdparty/zlib"]
+	path = thirdparty/zlib
+	url = https://github.com/madler/zlib.git
+    ignore = all

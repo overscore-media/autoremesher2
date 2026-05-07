@@ -26,6 +26,7 @@
 #include <QOpenGLBuffer>
 #include <QString>
 #include <QOpenGLTexture>
+#include <QVector3D>
 #include "pbrshadermesh.h"
 #include "pbrshaderprogram.h"
 
@@ -46,6 +47,8 @@ public:
     void reloadMesh();
     void fetchCurrentToonNormalAndDepthMaps(QImage *normalMap, QImage *depthMap);
     void updateToonNormalAndDepthMaps(QImage *normalMap, QImage *depthMap);
+    QVector3D modelCentroid();
+    bool hasTriangleGeometry() const;
 private:
     PbrShaderMesh *m_mesh = nullptr;
     PbrShaderMesh *m_newMesh = nullptr;
@@ -73,6 +76,7 @@ private:
     QImage *m_currentToonNormalMap = nullptr;
     QImage *m_currentToonDepthMap = nullptr;
     bool m_newToonMapsComing = false;
+    QVector3D m_modelCentroid;
 private:
     QOpenGLVertexArrayObject m_vaoTriangle;
     QOpenGLBuffer m_vboTriangle;

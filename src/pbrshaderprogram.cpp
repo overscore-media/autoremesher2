@@ -79,12 +79,17 @@ PbrShaderProgram::PbrShaderProgram(bool isCoreProfile)
     m_mousePickEnabledLoc = this->uniformLocation("mousePickEnabled");
     m_mousePickTargetPositionLoc = this->uniformLocation("mousePickTargetPosition");
     m_mousePickRadiusLoc = this->uniformLocation("mousePickRadius");
+    m_meshOpacityLoc = this->uniformLocation("meshOpacity");
+    this->uniformLocation("modelDiffuseColor");
+    this->uniformLocation("modelDiffuseColorEnabled");
     if (m_isCoreProfile) {
         m_environmentIrradianceMapIdLoc = this->uniformLocation("environmentIrradianceMapId");
         m_environmentIrradianceMapEnabledLoc = this->uniformLocation("environmentIrradianceMapEnabled");
         m_environmentSpecularMapIdLoc = this->uniformLocation("environmentSpecularMapId");
         m_environmentSpecularMapEnabledLoc = this->uniformLocation("environmentSpecularMapEnabled");
     }
+    if (m_meshOpacityLoc >= 0)
+        setUniformValue(m_meshOpacityLoc, 1.0f);
 }
 
 int PbrShaderProgram::projectionMatrixLoc()
@@ -315,6 +320,16 @@ void PbrShaderProgram::setMousePickRadiusValue(float value)
     setUniformValue(m_mousePickRadiusLoc, m_mousePickRadiusValue);
 }
 
+void PbrShaderProgram::setMeshOpacityValue(float value)
+{
+    if (m_meshOpacityLoc < 0)
+        return;
+    if (qFuzzyCompare(value, m_meshOpacityValue))
+        return;
+    m_meshOpacityValue = value;
+    setUniformValue(m_meshOpacityLoc, m_meshOpacityValue);
+}
+
 void PbrShaderProgram::setEnvironmentIrradianceMapIdValue(int value)
 {
     if (value == m_environmentIrradianceMapIdValue)
@@ -345,4 +360,25 @@ void PbrShaderProgram::setEnvironmentSpecularMapEnabledValue(int value)
         return;
     m_environmentSpecularMapEnabledValue = value;
     setUniformValue(m_environmentSpecularMapEnabledLoc, m_environmentSpecularMapEnabledValue);
+}
+
+void PbrShaderProgram::setModelDiffuseColorValue(const QVector3D &value)
+{
+    if (qFuzzyCompare(value, m_modelDiffuseColorValue))
+        return;
+    m_modelDiffuseColorValue = value;
+    setUniformValue(this->uniformLocation("modelDiffuseColor"), m_modelDiffuseColorValue);
+}
+
+void PbrShaderProgram::setModelDiffuseColorEnabledValue(int value)
+{
+    if (value == m_modelDiffuseColorEnabledValue)
+        return;
+    m_modelDiffuseColorEnabledValue = value;
+    setUniformValue(this->uniformLocation("modelDiffuseColorEnabled"), m_modelDiffuseColorEnabledValue);
+}
+
+bool PbrShaderProgram::isModelDiffuseColorEnabled()
+{
+    return m_modelDiffuseColorEnabledValue != 0;
 }

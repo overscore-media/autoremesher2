@@ -1,7 +1,4 @@
-QT += core widgets opengl network
-win32 {
-    QT += winextras
-}
+QT += core widgets opengl
 CONFIG += release
 CONFIG(release, debug|release) DEFINES += NDEBUG
 DEFINES += AUTO_REMESHER_DEBUG
@@ -10,88 +7,51 @@ RESOURCES += resources.qrc
 
 CONFIG += object_parallel_to_source
 
-CONFIG(debug, debug|release) OBJECTS_DIR=obj-debug
-CONFIG(release, debug|release) OBJECTS_DIR=obj
-CONFIG(debug, debug|release) MOC_DIR=moc-debug
-CONFIG(release, debug|release) MOC_DIR=moc
-
-win32 {
-    CONFIG(debug, debug|release) CONFIG += force_debug_info
-	RC_FILE = autoremesher.rc
-}
-
-macx {
-	ICON = autoremesher.icns
-
-	RESOURCE_FILES.files = $$ICON
-	RESOURCE_FILES.path = Contents/Resources
-	QMAKE_BUNDLE_DATA += RESOURCE_FILES
-}
+CONFIG(debug, debug|release) OBJECTS_DIR=build
+CONFIG(release, debug|release) OBJECTS_DIR=build
+CONFIG(debug, debug|release) MOC_DIR=build
+CONFIG(release, debug|release) MOC_DIR=build
 
 isEmpty(HUMAN_VERSION) {
-	HUMAN_VERSION = "1.0.0-beta.3"
+	HUMAN_VERSION = "2.0.0"
 }
 isEmpty(VERSION) {
-	VERSION = 1.0.0.8
+	VERSION = 2.0.0.0
 }
 
-HOMEPAGE_URL = "https://autoremesher.dust3d.org/"
-REPOSITORY_URL = "https://github.com/huxingyi/autoremesher"
-ISSUES_URL = "https://github.com/huxingyi/autoremesher/issues"
-UPDATES_CHECKER_URL = "https://dust3d.org/autoremesher-updateinfo.xml"
-
-PLATFORM = "Unknown"
-macx {
-	PLATFORM = "MacOS"
-}
-win32 {
-	PLATFORM = "Win32"
-}
-unix:!macx {
-	PLATFORM = "Linux"
+unix {
+    PROJECT_PLATFORM = Linux
+    ICON = autoremesher.png
 }
 
-QMAKE_TARGET_COMPANY = Dust3D
 QMAKE_TARGET_PRODUCT = AutoRemesher
 QMAKE_TARGET_DESCRIPTION = "AutoRemesher is a cross-platform open-source automatic quad remeshing software"
-QMAKE_TARGET_COPYRIGHT = "Copyright (C) 2020 AutoRemesher Project. All Rights Reserved."
+QMAKE_TARGET_COPYRIGHT = "Copyright (C) 2026 OverScore Media"
 
-DEFINES += "PROJECT_DEFINED_APP_COMPANY=\"\\\"$$QMAKE_TARGET_COMPANY\\\"\""
 DEFINES += "PROJECT_DEFINED_APP_NAME=\"\\\"$$QMAKE_TARGET_PRODUCT\\\"\""
 DEFINES += "PROJECT_DEFINED_APP_VER=\"\\\"$$VERSION\\\"\""
 DEFINES += "PROJECT_DEFINED_APP_HUMAN_VER=\"\\\"$$HUMAN_VERSION\\\"\""
-DEFINES += "PROJECT_DEFINED_APP_HOMEPAGE_URL=\"\\\"$$HOMEPAGE_URL\\\"\""
-DEFINES += "PROJECT_DEFINED_APP_REPOSITORY_URL=\"\\\"$$REPOSITORY_URL\\\"\""
-DEFINES += "PROJECT_DEFINED_APP_ISSUES_URL=\"\\\"$$ISSUES_URL\\\"\""
-DEFINES += "PROJECT_DEFINED_APP_UPDATES_CHECKER_URL=\"\\\"$$UPDATES_CHECKER_URL\\\"\""
-DEFINES += "PROJECT_DEFINED_APP_PLATFORM=\"\\\"$$PLATFORM\\\"\""
+DEFINES += "PROJECT_DEFINED_APP_PLATFORM=\"\\\"$$PROJECT_PLATFORM\\\"\""
 
-CONFIG += c++14
+CONFIG += c++17
 
-macx {
-	QMAKE_CXXFLAGS_RELEASE -= -O
-	QMAKE_CXXFLAGS_RELEASE -= -O1
-	QMAKE_CXXFLAGS_RELEASE -= -O2
-
-	QMAKE_CXXFLAGS_RELEASE += -O3
+# GCC defines "linux" / "unix" as macros; QtAwesome's fa::linux icon name breaks compilation.
+linux {
+    QMAKE_CXXFLAGS += -Ulinux -Uunix
 }
 
-unix:!macx {
-	QMAKE_CXXFLAGS_RELEASE -= -O
-	QMAKE_CXXFLAGS_RELEASE -= -O1
-	QMAKE_CXXFLAGS_RELEASE -= -O2
-
-	QMAKE_CXXFLAGS_RELEASE += -O3
-}
-
-win32 {
-	CONFIG(debug, debug|release) QMAKE_CXXFLAGS += /Od
-    CONFIG(release, debug|release) QMAKE_CXXFLAGS += /O2
-	QMAKE_CXXFLAGS += /bigobj
-}
+QMAKE_CXXFLAGS_RELEASE -= -O
+QMAKE_CXXFLAGS_RELEASE -= -O1
+QMAKE_CXXFLAGS_RELEASE -= -O2
+QMAKE_CXXFLAGS_RELEASE += -O3
 
 DEFINES += _USE_MATH_DEFINES
 DEFINES += NOMINMAX
+
+# Geogram expects GEOGRAM_VERSION when not using CMake (see src/lib/geogram/basic/common.cpp)
+DEFINES += GEOGRAM_VERSION=\\\"1.9.9\\\"
+# Use bundled stb / dependencies vendored under geogram/third_party (see image_serializer_stb.cpp)
+DEFINES += GEOGRAM_USE_BUILTIN_DEPS
 
 include(thirdparty/QtAwesome/QtAwesome/QtAwesome.pri)
 
@@ -107,6 +67,12 @@ INCLUDEPATH += include
 
 SOURCES += src/main.cpp
 
+SOURCES += src/objmeshio.cpp
+HEADERS += src/objmeshio.h
+
+SOURCES += src/remeshcli.cpp
+HEADERS += src/remeshcli.h
+
 SOURCES += src/logbrowser.cpp
 HEADERS += src/logbrowser.h
 
@@ -119,14 +85,17 @@ HEADERS += src/spinnableawesomebutton.h
 SOURCES += src/util.cpp
 HEADERS += src/util.h
 
-SOURCES += src/updateschecker.cpp
-HEADERS += src/updateschecker.h
-
 SOURCES += src/mainwindow.cpp
 HEADERS += src/mainwindow.h
 
+SOURCES += src/settingsdialog.cpp
+HEADERS += src/settingsdialog.h
+
 SOURCES += src/aboutwidget.cpp
 HEADERS += src/aboutwidget.h
+
+SOURCES += src/howtousewidget.cpp
+HEADERS += src/howtousewidget.h
 
 SOURCES += src/theme.cpp
 HEADERS += src/theme.h
@@ -136,9 +105,6 @@ HEADERS += src/graphicscontainerwidget.h
 
 SOURCES += src/graphicswidget.cpp
 HEADERS += src/graphicswidget.h
-
-SOURCES += src/updatescheckwidget.cpp
-HEADERS += src/updatescheckwidget.h
 
 SOURCES += src/pbrshadermesh.cpp
 HEADERS += src/pbrshadermesh.h
@@ -193,337 +159,280 @@ HEADERS += src/AutoRemesher/meshseparator.h
 SOURCES += src/AutoRemesher/relativeheight.cpp
 HEADERS += src/AutoRemesher/relativeheight.h
 
-INCLUDEPATH += thirdparty/openvdb/openvdb-7.0.0
-INCLUDEPATH += thirdparty/openexr/openexr-2.4.1
-unix {
-	LIBS += -Lthirdparty/openvdb/openvdb-7.0.0/build/openvdb -lopenvdb
-	LIBS += -Lthirdparty/openexr/openexr-2.4.1/build/IlmBase/Half -lHalf-2_4
-    LIBS += -Lthirdparty/zlib/zlib-1.2.11/build -lz
-	LIBS += -Lthirdparty/blosc/c-blosc-1.18.1/build/blosc -lblosc
-}
-win32 {
-	LIBS += -Lthirdparty/openvdb/openvdb-7.0.0/build/openvdb/Release -lopenvdb
-	LIBS += -Lthirdparty/openexr/openexr-2.4.1/build/IlmBase/Half/Release -lHalf-2_4
-}
+# Geogram 1.9.9 (git submodule BrunoLevy/geogram tag v1.9.9 + recursive submodules)
+GEOGRAM_SRC = thirdparty/geogram/src/lib
+# Exploragram is a separate submodule (upstream ships it only if present under src/lib/exploragram)
+EXPLORAGRAM_SRC = thirdparty/exploragram
+# exploragram sources use includes like <exploragram/hexdom/...> (parent dir on include path is thirdparty/)
+INCLUDEPATH += thirdparty
 
-INCLUDEPATH += thirdparty/geogram/geogram-1.7.5/src/lib
-INCLUDEPATH += thirdparty/geogram
-win32 {
-    DEFINES -= UNICODE
-    LIBS += -ladvapi32 -lshell32
-}
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/algorithm.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/algorithm.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/command_line.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/command_line.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/environment.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/environment.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/geometry.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/geometry.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/packed_arrays.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/packed_arrays.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/progress.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/progress.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/assert.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/assert.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/command_line_args.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/command_line_args.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/factory.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/factory.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/line_stream.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/line_stream.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/process.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/process.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/quaternion.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/quaternion.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/attributes.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/attributes.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/common.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/common.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/file_system.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/file_system.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/logger.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/logger.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/process_unix.cpp
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/stopwatch.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/stopwatch.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/b_stream.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/b_stream.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/counted.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/counted.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/geofile.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/geofile.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/numeric.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/numeric.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/process_win.cpp
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/string.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/string.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/smart_pointer.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/android_wrapper.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/matrix.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/process_private.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/argused.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/memory.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/psm.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/thread_sync.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/atomics.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/geometry_nd.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/vecg.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/permutation.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/basic/range.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/delaunay/delaunay.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/delaunay/delaunay.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/delaunay/delaunay_3d.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/delaunay/delaunay_3d.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/delaunay/delaunay_tetgen.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/delaunay/delaunay_tetgen.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/delaunay/LFS.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/delaunay/LFS.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/delaunay/periodic.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/delaunay/periodic.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/delaunay/delaunay_2d.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/delaunay/delaunay_2d.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/delaunay/delaunay_nn.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/delaunay/delaunay_nn.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/delaunay/delaunay_triangle.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/delaunay/delaunay_triangle.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/delaunay/parallel_delaunay_3d.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/delaunay/parallel_delaunay_3d.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/delaunay/periodic_delaunay_3d.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/delaunay/periodic_delaunay_3d.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/delaunay/cavity.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/bibliography/bibliography.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/bibliography/bibliography.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/bibliography/embedded_references.cpp
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/parameterization/mesh_global_param.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/parameterization/mesh_global_param.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh_AABB.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh_AABB.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh_frame_field.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh_frame_field.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh_fill_holes.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh_fill_holes.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh_geometry.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh_geometry.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh_halfedges.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh_halfedges.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh_io.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh_io.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh_topology.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh_topology.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh_partition.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh_partition.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh_preprocessing.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh_preprocessing.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh_reorder.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh_reorder.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh_repair.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh_repair.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/mesh/mesh.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/points/co3ne.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/points/co3ne.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/points/colocate.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/points/colocate.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/points/kd_tree.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/points/kd_tree.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/points/nn_search.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/points/nn_search.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/points/principal_axes.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/points/principal_axes.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/numerics/expansion_nt.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/numerics/expansion_nt.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/numerics/lbfgs_optimizers.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/numerics/lbfgs_optimizers.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/numerics/matrix_util.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/numerics/matrix_util.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/numerics/multi_precision.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/numerics/multi_precision.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/numerics/optimizer.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/numerics/optimizer.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/numerics/predicates.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/numerics/predicates.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_api.cpp
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_os.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_arpack.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_arpack.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_cholmod.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_cholmod.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_cuda.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_cuda.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_iterative_solvers.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_iterative_solvers.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_matrix.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_matrix.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_preconditioners.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_preconditioners.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_superlu.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_superlu.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_64.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_blas.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_blas.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_context.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_context.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_ext.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_linkage.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_mkl.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_mkl.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/NL/nl_private.h
-
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/image/image_library.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/image/colormap.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/image/colormap.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/image/image_library.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/image/image_library.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/image/image_serializer.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/image/image_serializer.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/image/image_serializer_stb.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/image/image_serializer_stb.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/image/morpho_math.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/image/morpho_math.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/image/image.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/image/image.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/image/image_rasterizer.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/image/image_rasterizer.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/image/image_serializer_pgm.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/image/image_serializer_pgm.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/image/image_serializer_xpm.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/image/image_serializer_xpm.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/image/color.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/voronoi/convex_cell.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/voronoi/convex_cell.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/voronoi/generic_RVD_cell.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/voronoi/generic_RVD_cell.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/voronoi/generic_RVD.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/voronoi/generic_RVD_polygon.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/voronoi/generic_RVD_vertex.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/voronoi/generic_RVD_utils.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/voronoi/integration_simplex.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/voronoi/integration_simplex.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/voronoi/RVD_callback.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/voronoi/RVD_callback.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/voronoi/CVT.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/voronoi/CVT.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/voronoi/generic_RVD_polygon.cpp
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/voronoi/RVD.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/voronoi/RVD.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/voronoi/RVD_mesh_builder.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/voronoi/RVD_mesh_builder.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/third_party/LM7/libmeshb7.c
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/third_party/LM7/libmeshb7.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/third_party/rply/rply.c
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/third_party/rply/rply.h
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/geogram/third_party/rply/rplyfile.h
-
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/exploragram/hexdom/basic.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/exploragram/hexdom/basic.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/exploragram/hexdom/frame.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/exploragram/hexdom/frame.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/exploragram/hexdom/spherical_harmonics_l4.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/exploragram/hexdom/spherical_harmonics_l4.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/exploragram/hexdom/polygon.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/exploragram/hexdom/polygon.h
-SOURCES += thirdparty/geogram/geogram-1.7.5/src/lib/exploragram/hexdom/quad_cover.cpp
-HEADERS += thirdparty/geogram/geogram-1.7.5/src/lib/exploragram/hexdom/quad_cover.h
-
-INCLUDEPATH += thirdparty/tbb/include
-unix {
-	LIBS += -Lthirdparty/tbb/build2 -ltbbmalloc_proxy_static -ltbbmalloc_static -ltbb_static
-    LIBS += -Lthirdparty/zlib/zlib-1.2.11/build -lz
-	unix:!macx {
-		LIBS += -ldl
-	}
-}
-win32 {
-    LIBS += -Lthirdparty/zlib/zlib-1.2.11/build/Release -lzlibstatic
-    CONFIG(release, debug|release) LIBS += -Lthirdparty/tbb/build2/Release -ltbb
-}
-
-win32 {
-    LIBS += -luser32
-	LIBS += -lopengl32
-
-	isEmpty(BOOST_INCLUDEDIR) {
-		BOOST_INCLUDEDIR = $$(BOOST_INCLUDEDIR)
-	}
-	isEmpty(CGAL_DIR) {
-		CGAL_DIR = $$(CGAL_DIR)
-	}
-
-	isEmpty(BOOST_INCLUDEDIR) {
-		error("No BOOST_INCLUDEDIR define found in enviroment variables")
-	}
-
-	isEmpty(CGAL_DIR) {
-		error("No CGAL_DIR define found in enviroment variables")
-	}
-
-	GMP_LIBNAME = libgmp-10
-	MPFR_LIBNAME = libmpfr-4
-	CGAL_INCLUDEDIR = $$CGAL_DIR\include
-	GMP_INCLUDEDIR = $$CGAL_DIR\auxiliary\gmp\include
-	GMP_LIBDIR = $$CGAL_DIR\auxiliary\gmp\lib
-	MPFR_INCLUDEDIR = $$GMP_INCLUDEDIR
-	MPFR_LIBDIR = $$GMP_LIBDIR
-}
-
-macx {
-	GMP_LIBNAME = gmp
-	MPFR_LIBNAME = mpfr
-	BOOST_INCLUDEDIR = /usr/local/opt/boost/include
-	CGAL_INCLUDEDIR = /usr/local/opt/cgal/include
-	GMP_INCLUDEDIR = /usr/local/opt/gmp/include
-	GMP_LIBDIR = /usr/local/opt/gmp/lib
-	MPFR_INCLUDEDIR = /usr/local/opt/mpfr/include
-	MPFR_LIBDIR = /usr/local/opt/mpfr/lib
-}
+# Bundled zlib + oneTBB from scripts/build-bundled-deps.sh → thirdparty/.artifacts/
+AUTOREMESHER_BUNDLE_STAMP = $$PWD/thirdparty/.artifacts/.stamp
+AUTOREMESHER_BUNDLE_ROOT = $$PWD/thirdparty/.artifacts
 
 unix:!macx {
-	GMP_LIBNAME = gmp
-	MPFR_LIBNAME = mpfr
-	BOOST_INCLUDEDIR = /usr/local/include
-	CGAL_INCLUDEDIR = /usr/local/include
-	GMP_INCLUDEDIR = /usr/local/include
-	GMP_LIBDIR = /usr/local/lib
-	MPFR_INCLUDEDIR = /usr/local/include
-	MPFR_LIBDIR = /usr/local/lib
+    # Headers for app code (tbb::*, zlib if needed)
+    INCLUDEPATH += $$AUTOREMESHER_BUNDLE_ROOT/onetbb/include
+    INCLUDEPATH += $$AUTOREMESHER_BUNDLE_ROOT/zlib/include
+    QMAKE_RPATHDIR += $$AUTOREMESHER_BUNDLE_ROOT/onetbb/lib
+    LIBS += -L$$AUTOREMESHER_BUNDLE_ROOT/onetbb/lib -ltbb
+    LIBS += -L$$AUTOREMESHER_BUNDLE_ROOT/zlib/lib -lz
+    
+    INCLUDEPATH += /usr/include/OpenEXR
+    INCLUDEPATH += /usr/include/openvdb
+    CONFIG += link_pkgconfig
+    PKGCONFIG += OpenEXR
+    INCLUDEPATH += /usr/include/openvdb
+    LIBS += -lopenvdb -lgmp -lmpfr -ldl
 }
 
-INCLUDEPATH += $$BOOST_INCLUDEDIR
+INCLUDEPATH += $$GEOGRAM_SRC
+INCLUDEPATH += $$GEOGRAM_SRC/geogram/third_party/libMeshb/sources
+INCLUDEPATH += $$GEOGRAM_SRC/geogram/third_party/rply
+INCLUDEPATH += $$GEOGRAM_SRC/geogram/third_party/OpenNL
+INCLUDEPATH += $$GEOGRAM_SRC/geogram/third_party
+INCLUDEPATH += $$GEOGRAM_SRC/geogram/third_party/amgcl
+INCLUDEPATH += $$GEOGRAM_SRC/geogram/third_party/stb_image
 
-INCLUDEPATH += $$GMP_INCLUDEDIR
-LIBS += -L$$GMP_LIBDIR -l$$GMP_LIBNAME
+SOURCES += src/geogram_report_progress_bridge.cpp
 
-INCLUDEPATH += $$MPFR_INCLUDEDIR
-LIBS += -L$$MPFR_LIBDIR -l$$MPFR_LIBNAME
+SOURCES += $$GEOGRAM_SRC/geogram/basic/algorithm.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/basic/algorithm.h
 
-INCLUDEPATH += $$CGAL_INCLUDEDIR
+SOURCES += $$GEOGRAM_SRC/geogram/basic/command_line.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/basic/command_line.h
+
+SOURCES += $$GEOGRAM_SRC/geogram/basic/environment.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/basic/environment.h
+
+SOURCES += $$GEOGRAM_SRC/geogram/basic/geometry.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/basic/geometry.h
+
+SOURCES += $$GEOGRAM_SRC/geogram/basic/packed_arrays.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/basic/packed_arrays.h
+
+SOURCES += $$GEOGRAM_SRC/geogram/basic/progress.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/basic/progress.h
+
+SOURCES += $$GEOGRAM_SRC/geogram/basic/assert.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/basic/assert.h
+
+SOURCES += $$GEOGRAM_SRC/geogram/basic/command_line_args.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/basic/command_line_args.h
+
+SOURCES += $$GEOGRAM_SRC/geogram/basic/factory.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/basic/factory.h
+
+SOURCES += $$GEOGRAM_SRC/geogram/basic/line_stream.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/basic/line_stream.h
+
+SOURCES += $$GEOGRAM_SRC/geogram/basic/process.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/basic/process.h
+
+SOURCES += $$GEOGRAM_SRC/geogram/basic/quaternion.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/basic/quaternion.h
+
+SOURCES += $$GEOGRAM_SRC/geogram/basic/attributes.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/basic/attributes.h
+
+SOURCES += $$GEOGRAM_SRC/geogram/basic/common.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/basic/common.h
+SOURCES += $$GEOGRAM_SRC/geogram/basic/file_system.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/basic/file_system.h
+SOURCES += $$GEOGRAM_SRC/geogram/basic/logger.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/basic/logger.h
+SOURCES += $$GEOGRAM_SRC/geogram/basic/process_unix.cpp
+SOURCES += $$GEOGRAM_SRC/geogram/basic/stopwatch.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/basic/stopwatch.h
+SOURCES += $$GEOGRAM_SRC/geogram/basic/b_stream.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/basic/b_stream.h
+SOURCES += $$GEOGRAM_SRC/geogram/basic/counted.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/basic/counted.h
+SOURCES += $$GEOGRAM_SRC/geogram/basic/geofile.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/basic/geofile.h
+SOURCES += $$GEOGRAM_SRC/geogram/basic/numeric.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/basic/numeric.h
+SOURCES += $$GEOGRAM_SRC/geogram/basic/process_win.cpp
+SOURCES += $$GEOGRAM_SRC/geogram/basic/string.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/basic/string.h
+HEADERS += $$GEOGRAM_SRC/geogram/basic/smart_pointer.h
+HEADERS += $$GEOGRAM_SRC/geogram/basic/matrix.h
+HEADERS += $$GEOGRAM_SRC/geogram/basic/process_private.h
+HEADERS += $$GEOGRAM_SRC/geogram/basic/argused.h
+HEADERS += $$GEOGRAM_SRC/geogram/basic/memory.h
+HEADERS += $$GEOGRAM_SRC/geogram/basic/psm.h
+HEADERS += $$GEOGRAM_SRC/geogram/basic/thread_sync.h
+HEADERS += $$GEOGRAM_SRC/geogram/basic/geometry_nd.h
+HEADERS += $$GEOGRAM_SRC/geogram/basic/vecg.h
+HEADERS += $$GEOGRAM_SRC/geogram/basic/permutation.h
+HEADERS += $$GEOGRAM_SRC/geogram/basic/range.h
+
+SOURCES += $$GEOGRAM_SRC/geogram/delaunay/delaunay.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/delaunay/delaunay.h
+SOURCES += $$GEOGRAM_SRC/geogram/delaunay/delaunay_3d.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/delaunay/delaunay_3d.h
+SOURCES += $$GEOGRAM_SRC/geogram/delaunay/delaunay_tetgen.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/delaunay/delaunay_tetgen.h
+SOURCES += $$GEOGRAM_SRC/geogram/delaunay/LFS.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/delaunay/LFS.h
+SOURCES += $$GEOGRAM_SRC/geogram/delaunay/periodic.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/delaunay/periodic.h
+SOURCES += $$GEOGRAM_SRC/geogram/delaunay/delaunay_2d.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/delaunay/delaunay_2d.h
+SOURCES += $$GEOGRAM_SRC/geogram/delaunay/delaunay_nn.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/delaunay/delaunay_nn.h
+SOURCES += $$GEOGRAM_SRC/geogram/delaunay/delaunay_triangle.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/delaunay/delaunay_triangle.h
+SOURCES += $$GEOGRAM_SRC/geogram/delaunay/parallel_delaunay_3d.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/delaunay/parallel_delaunay_3d.h
+SOURCES += $$GEOGRAM_SRC/geogram/delaunay/periodic_delaunay_3d.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/delaunay/periodic_delaunay_3d.h
+HEADERS += $$GEOGRAM_SRC/geogram/delaunay/cavity.h
+
+SOURCES += $$GEOGRAM_SRC/geogram/bibliography/bibliography.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/bibliography/bibliography.h
+SOURCES += $$GEOGRAM_SRC/geogram/bibliography/embedded_references.cpp
+
+SOURCES += $$GEOGRAM_SRC/geogram/parameterization/mesh_global_param.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/parameterization/mesh_global_param.h
+
+SOURCES += $$GEOGRAM_SRC/geogram/mesh/mesh_AABB.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/mesh/mesh_AABB.h
+SOURCES += $$GEOGRAM_SRC/geogram/mesh/mesh_frame_field.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/mesh/mesh_frame_field.h
+SOURCES += $$GEOGRAM_SRC/geogram/mesh/mesh_fill_holes.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/mesh/mesh_fill_holes.h
+SOURCES += $$GEOGRAM_SRC/geogram/mesh/mesh_geometry.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/mesh/mesh_geometry.h
+SOURCES += $$GEOGRAM_SRC/geogram/mesh/mesh_halfedges.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/mesh/mesh_halfedges.h
+SOURCES += $$GEOGRAM_SRC/geogram/mesh/mesh_io.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/mesh/mesh_io.h
+SOURCES += $$GEOGRAM_SRC/geogram/mesh/mesh_topology.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/mesh/mesh_topology.h
+SOURCES += $$GEOGRAM_SRC/geogram/mesh/mesh_partition.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/mesh/mesh_partition.h
+SOURCES += $$GEOGRAM_SRC/geogram/mesh/mesh_preprocessing.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/mesh/mesh_preprocessing.h
+SOURCES += $$GEOGRAM_SRC/geogram/mesh/mesh_reorder.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/mesh/mesh_reorder.h
+SOURCES += $$GEOGRAM_SRC/geogram/mesh/mesh_repair.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/mesh/mesh_repair.h
+SOURCES += $$GEOGRAM_SRC/geogram/mesh/mesh.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/mesh/mesh.h
+
+SOURCES += $$GEOGRAM_SRC/geogram/points/co3ne.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/points/co3ne.h
+SOURCES += $$GEOGRAM_SRC/geogram/points/colocate.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/points/colocate.h
+SOURCES += $$GEOGRAM_SRC/geogram/points/kd_tree.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/points/kd_tree.h
+SOURCES += $$GEOGRAM_SRC/geogram/points/nn_search.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/points/nn_search.h
+SOURCES += $$GEOGRAM_SRC/geogram/points/principal_axes.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/points/principal_axes.h
+
+SOURCES += $$GEOGRAM_SRC/geogram/numerics/expansion_nt.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/numerics/expansion_nt.h
+SOURCES += $$GEOGRAM_SRC/geogram/numerics/lbfgs_optimizers.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/numerics/lbfgs_optimizers.h
+SOURCES += $$GEOGRAM_SRC/geogram/numerics/matrix_util.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/numerics/matrix_util.h
+SOURCES += $$GEOGRAM_SRC/geogram/numerics/multi_precision.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/numerics/multi_precision.h
+SOURCES += $$GEOGRAM_SRC/geogram/numerics/optimizer.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/numerics/optimizer.h
+SOURCES += $$GEOGRAM_SRC/geogram/numerics/predicates.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/numerics/predicates.h
+
+HEADERS += $$GEOGRAM_SRC/geogram/NL/nl.h
+HEADERS += $$GEOGRAM_SRC/geogram/NL/nl_iterative_solvers.h
+HEADERS += $$GEOGRAM_SRC/geogram/NL/nl_blas.h
+HEADERS += $$GEOGRAM_SRC/geogram/NL/nl_matrix.h
+HEADERS += $$GEOGRAM_SRC/geogram/NL/nl_preconditioners.h
+HEADERS += $$GEOGRAM_SRC/geogram/NL/nl_context.h
+HEADERS += $$GEOGRAM_SRC/geogram/NL/nl_ext.h
+
+SOURCES += $$GEOGRAM_SRC/geogram/third_party/OpenNL/nl_api.c
+SOURCES += $$GEOGRAM_SRC/geogram/third_party/OpenNL/nl_arpack.c
+SOURCES += $$GEOGRAM_SRC/geogram/third_party/OpenNL/nl_blas.c
+SOURCES += $$GEOGRAM_SRC/geogram/third_party/OpenNL/nl_cholmod.c
+SOURCES += $$GEOGRAM_SRC/geogram/third_party/OpenNL/nl_context.c
+SOURCES += $$GEOGRAM_SRC/geogram/third_party/OpenNL/nl_cuda.c
+SOURCES += $$GEOGRAM_SRC/geogram/third_party/OpenNL/nl_iterative_solvers.c
+SOURCES += $$GEOGRAM_SRC/geogram/third_party/OpenNL/nl_matrix.c
+SOURCES += $$GEOGRAM_SRC/geogram/third_party/OpenNL/nl_mkl.c
+SOURCES += $$GEOGRAM_SRC/geogram/third_party/OpenNL/nl_os.c
+SOURCES += $$GEOGRAM_SRC/geogram/third_party/OpenNL/nl_preconditioners.c
+SOURCES += $$GEOGRAM_SRC/geogram/third_party/OpenNL/nl_superlu.c
+HEADERS += $$GEOGRAM_SRC/geogram/third_party/OpenNL/nl_arpack.h
+HEADERS += $$GEOGRAM_SRC/geogram/third_party/OpenNL/nl_cholmod.h
+HEADERS += $$GEOGRAM_SRC/geogram/third_party/OpenNL/nl_cuda.h
+HEADERS += $$GEOGRAM_SRC/geogram/third_party/OpenNL/nl_mkl.h
+HEADERS += $$GEOGRAM_SRC/geogram/third_party/OpenNL/nl_superlu.h
+HEADERS += $$GEOGRAM_SRC/geogram/third_party/OpenNL/nl_private.h
+HEADERS += $$GEOGRAM_SRC/geogram/third_party/OpenNL/nl_64.h
+
+HEADERS += $$GEOGRAM_SRC/geogram/image/image_library.h
+
+SOURCES += $$GEOGRAM_SRC/geogram/image/colormap.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/image/colormap.h
+SOURCES += $$GEOGRAM_SRC/geogram/image/image_library.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/image/image_library.h
+SOURCES += $$GEOGRAM_SRC/geogram/image/image_serializer.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/image/image_serializer.h
+SOURCES += $$GEOGRAM_SRC/geogram/image/image_serializer_stb.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/image/image_serializer_stb.h
+SOURCES += $$GEOGRAM_SRC/geogram/image/morpho_math.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/image/morpho_math.h
+SOURCES += $$GEOGRAM_SRC/geogram/image/image.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/image/image.h
+SOURCES += $$GEOGRAM_SRC/geogram/image/image_rasterizer.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/image/image_rasterizer.h
+SOURCES += $$GEOGRAM_SRC/geogram/image/image_serializer_pgm.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/image/image_serializer_pgm.h
+SOURCES += $$GEOGRAM_SRC/geogram/image/image_serializer_xpm.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/image/image_serializer_xpm.h
+SOURCES += $$GEOGRAM_SRC/geogram/image/color.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/image/color.h
+
+SOURCES += $$GEOGRAM_SRC/geogram/voronoi/convex_cell.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/voronoi/convex_cell.h
+SOURCES += $$GEOGRAM_SRC/geogram/voronoi/generic_RVD_cell.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/voronoi/generic_RVD_cell.h
+HEADERS += $$GEOGRAM_SRC/geogram/voronoi/generic_RVD.h
+HEADERS += $$GEOGRAM_SRC/geogram/voronoi/generic_RVD_polygon.h
+HEADERS += $$GEOGRAM_SRC/geogram/voronoi/generic_RVD_vertex.h
+HEADERS += $$GEOGRAM_SRC/geogram/voronoi/generic_RVD_utils.h
+SOURCES += $$GEOGRAM_SRC/geogram/voronoi/integration_simplex.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/voronoi/integration_simplex.h
+SOURCES += $$GEOGRAM_SRC/geogram/voronoi/RVD_callback.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/voronoi/RVD_callback.h
+SOURCES += $$GEOGRAM_SRC/geogram/voronoi/CVT.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/voronoi/CVT.h
+SOURCES += $$GEOGRAM_SRC/geogram/voronoi/generic_RVD_polygon.cpp
+SOURCES += $$GEOGRAM_SRC/geogram/voronoi/RVD.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/voronoi/RVD.h
+SOURCES += $$GEOGRAM_SRC/geogram/voronoi/RVD_mesh_builder.cpp
+HEADERS += $$GEOGRAM_SRC/geogram/voronoi/RVD_mesh_builder.h
+
+SOURCES += $$GEOGRAM_SRC/geogram/third_party/libMeshb/sources/libmeshb7.c
+HEADERS += $$GEOGRAM_SRC/geogram/third_party/libMeshb/sources/libmeshb7.h
+
+SOURCES += $$GEOGRAM_SRC/geogram/third_party/rply/rply.c
+HEADERS += $$GEOGRAM_SRC/geogram/third_party/rply/rply.h
+HEADERS += $$GEOGRAM_SRC/geogram/third_party/rply/rplyfile.h
+
+SOURCES += $$EXPLORAGRAM_SRC/hexdom/basic.cpp
+HEADERS += $$EXPLORAGRAM_SRC/hexdom/basic.h
+SOURCES += $$EXPLORAGRAM_SRC/hexdom/frame.cpp
+HEADERS += $$EXPLORAGRAM_SRC/hexdom/frame.h
+SOURCES += $$EXPLORAGRAM_SRC/hexdom/spherical_harmonics_l4.cpp
+HEADERS += $$EXPLORAGRAM_SRC/hexdom/spherical_harmonics_l4.h
+SOURCES += $$EXPLORAGRAM_SRC/hexdom/polygon.cpp
+HEADERS += $$EXPLORAGRAM_SRC/hexdom/polygon.h
+SOURCES += $$EXPLORAGRAM_SRC/hexdom/quad_cover.cpp
+HEADERS += $$EXPLORAGRAM_SRC/hexdom/quad_cover.h
 
 target.path = ./
 INSTALLS += target

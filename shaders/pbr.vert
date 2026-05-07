@@ -46,6 +46,8 @@ uniform mat3 normalMatrix;
 uniform mat4 viewMatrix;
 uniform int normalMapEnabled;
 uniform vec3 eyePos;
+uniform vec3 modelDiffuseColor;
+uniform int modelDiffuseColorEnabled;
 
 mat3 transpose(mat3 m) 
 {
@@ -59,7 +61,11 @@ void main()
     vert = (modelMatrix * vertex).xyz;
     vertRaw = vert;
     vertNormal = normalize((modelMatrix * vec4(normal, 1.0)).xyz);
-    vertColor = color;
+    if (modelDiffuseColorEnabled == 1) {
+        vertColor = modelDiffuseColor;
+    } else {
+        vertColor = color;
+    }
     vertAlpha = alpha;
     cameraPos = eyePos;
 

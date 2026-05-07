@@ -102,6 +102,7 @@ uniform int ambientOcclusionMapEnabled;
 uniform int mousePickEnabled;
 uniform vec3 mousePickTargetPosition;
 uniform float mousePickRadius;
+uniform float meshOpacity;
 uniform samplerCube environmentIrradianceMapId;
 uniform int environmentIrradianceMapEnabled;
 uniform samplerCube environmentSpecularMapId;
@@ -525,4 +526,5 @@ void main()
                                       vert,
                                       normalize(cameraPos - vert),
                                       normal);
+    fragColor.a *= meshOpacity;
 }

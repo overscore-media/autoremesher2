@@ -30,6 +30,10 @@ void GraphicsContainerWidget::resizeEvent(QResizeEvent *event)
 {
     if (m_graphicsWidget && m_graphicsWidget->size() != event->size())
         emit containerSizeChanged(event->size());
+    if (m_graphicsWidget && m_modelWidget) {
+        m_graphicsWidget->lower();
+        m_modelWidget->raise();
+    }
 }
 
 void GraphicsContainerWidget::mousePressEvent(QMouseEvent *event)
