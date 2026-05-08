@@ -187,10 +187,10 @@ unix:!macx {
 }
 
 win32 {
-    INCLUDEPATH += $$AUTOREMESHER_BUNDLE_ROOT/onetbb/include
-    INCLUDEPATH += $$AUTOREMESHER_BUNDLE_ROOT/zlib/include
-    LIBS += -L$$AUTOREMESHER_BUNDLE_ROOT/onetbb/lib -ltbb
-    LIBS += -L$$AUTOREMESHER_BUNDLE_ROOT/zlib/lib -lz
+    INCLUDEPATH += /mingw64/include
+    INCLUDEPATH += /mingw64/include/oneapi
+    LIBS += -ltbb
+    LIBS += -L/mingw64/lib -lz
 
     INCLUDEPATH += /mingw64/include/OpenEXR
     INCLUDEPATH += /mingw64/include
