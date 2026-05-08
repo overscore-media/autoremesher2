@@ -108,6 +108,7 @@ jobs:
             mingw-w64-x86_64-gmp
             mingw-w64-x86_64-mpfr
             mingw-w64-x86_64-git
+            mingw-w64-x86_64-gcc
 
       - name: Bootstrap submodules
         run: |
