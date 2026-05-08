@@ -110,6 +110,7 @@ jobs:
             mingw-w64-x86_64-git
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-make
+            mingw-w64-x86_64-tbb
 
       - name: Bootstrap submodules
         run: |
@@ -121,7 +122,14 @@ jobs:
       - name: Build bundled dependencies
         run: |
           ln -s /mingw64/bin/mingw32-make.exe /mingw64/bin/make.exe
-          bash ./scripts/build-bundled-deps.sh
+          mkdir -p thirdparty/.artifacts/zlib thirdparty/.artifacts/onetbb/include thirdparty/.artifacts/onetbb/lib
+          cd thirdparty/zlib
+          ./configure --prefix="$(pwd)/../.artifacts/zlib" --static
+          make -j4
+          make install
+          ln -sf /mingw64/include/oneapi thirdparty/.artifacts/onetbb/include/oneapi
+          ln -sf /mingw64/lib/libtbb.dll.a thirdparty/.artifacts/onetbb/lib/libtbb.a
+          touch thirdparty/.artifacts/.stamp
         shell: msys2 {0}
 
       - name: Build project
