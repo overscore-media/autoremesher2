@@ -194,7 +194,7 @@ win32 {
 
     INCLUDEPATH += /mingw64/include/OpenEXR
     INCLUDEPATH += /mingw64/include
-    LIBS += -lopenvdb -lgmp -lmpfr
+    LIBS += -lopenvdb -lImath -lgmp -lmpfr -lopengl32
 }
 
 INCLUDEPATH += $$GEOGRAM_SRC
