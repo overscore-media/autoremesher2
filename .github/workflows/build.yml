@@ -136,6 +136,7 @@ jobs:
 
       - name: Build project
         run: |
+          export PATH="$(cygpath -u "$QT_ROOT_DIR")/bin:$PATH"
           qmake autoremesher.pro CONFIG+=release
           mingw32-make -j$(nproc)
         shell: msys2 {0}
