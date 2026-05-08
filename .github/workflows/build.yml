@@ -147,9 +147,44 @@ jobs:
           mingw32-make -j$(nproc)
         shell: msys2 {0}
 
+      - name: Bundle Qt + MinGW DLLs for distribution
+        env:
+          MSYS2_ROOT: ${{ steps.msys2.outputs['msys2-location'] }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cp release/autoremesher.exe dist/
+          export PATH="$(cygpath -u "${MSYS2_ROOT}/mingw64/bin"):$(cygpath -u "${QT_ROOT_DIR}/bin"):$PATH"
+          windeployqt --release --no-translations dist/autoremesher.exe
+          # Copy MSYS2 MinGW DLLs next to the exe (recursive until stable — OpenVDB/Qt pull many deps).
+          shopt -s nullglob
+          changed=1
+          round=0
+          while [[ "$changed" -eq 1 && "$round" -lt 25 ]]; do
+            changed=0
+            round=$((round + 1))
+            for f in dist/autoremesher.exe dist/*.dll; do
+              [[ -f "$f" ]] || continue
+              while read -r libpath; do
+                [[ -z "$libpath" ]] && continue
+                case "$libpath" in
+                  /mingw64/bin/*.dll)
+                    base=$(basename "$libpath")
+                    if [[ ! -f "dist/$base" ]]; then
+                      cp "$libpath" dist/
+                      changed=1
+                    fi
+                    ;;
+                esac
+              done < <(ldd "$f" 2>/dev/null | awk '/=>/{print $3}' | grep '^/mingw64/bin/' || true)
+            done
+          done
+        shell: msys2 {0}
+
       - name: Create zip package
         run: |
-          Compress-Archive -Path release/autoremesher.exe -DestinationPath AutoRemesher-${{ github.sha }}-x86_64-windows.zip
+          Set-Location dist
+          Compress-Archive -Path * -DestinationPath ../AutoRemesher-${{ github.sha }}-x86_64-windows.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
