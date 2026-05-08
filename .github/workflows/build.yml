@@ -162,23 +162,21 @@ jobs:
           export PATH="$(cygpath -u "${MSYS2_ROOT}/mingw64/bin"):$(cygpath -u "${QT_ROOT_DIR}/bin"):$PATH"
           changed=1
           round=0
-          while [[ "$changed" -eq 1 && "$round" -lt 25 ]]; do
+          while [[ "$changed" -eq 1 && "$round" -lt 40 ]]; do
             changed=0
             round=$((round + 1))
             while IFS= read -r -d '' f; do
               [[ -f "$f" ]] || continue
-              while read -r libpath; do
-                [[ -z "$libpath" ]] && continue
-                case "$libpath" in
-                  /mingw64/bin/*.dll)
-                    base=$(basename "$libpath")
-                    if [[ ! -f "dist/$base" ]]; then
-                      cp "$libpath" dist/
-                      changed=1
-                    fi
-                    ;;
-                esac
-              done < <(ldd "$f" 2>/dev/null | awk '/=>/{print $3}' | grep '^/mingw64/bin/' || true)
+              while read -r dll; do
+                dll="${dll//$'\r'/}"
+                [[ -z "$dll" ]] && continue
+                [[ "${dll,,}" == *.dll ]] || continue
+                [[ -f "/mingw64/bin/$dll" ]] || continue
+                if [[ ! -f "dist/$dll" ]]; then
+                  cp "/mingw64/bin/$dll" "dist/$dll"
+                  changed=1
+                fi
+              done < <(objdump -p "$f" 2>/dev/null | awk '/DLL Name:/{print $NF}' || true)
             done < <(find dist -type f \( -name '*.exe' -o -name '*.dll' \) -print0)
           done
         shell: msys2 {0}
