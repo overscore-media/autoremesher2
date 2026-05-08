@@ -147,16 +147,19 @@ jobs:
           mingw32-make -j$(nproc)
         shell: msys2 {0}
 
-      - name: Bundle Qt + MinGW DLLs for distribution
+      - name: Bundle Qt (windeployqt)
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item release/autoremesher.exe dist/autoremesher.exe
+          & "$env:QT_ROOT_DIR\bin\windeployqt.exe" --release --no-translations (Join-Path $PWD 'dist\autoremesher.exe')
+        shell: pwsh
+
+      - name: Bundle MinGW runtime DLLs
         env:
           MSYS2_ROOT: ${{ steps.msys2.outputs['msys2-location'] }}
         run: |
           set -euo pipefail
-          mkdir -p dist
-          cp release/autoremesher.exe dist/
           export PATH="$(cygpath -u "${MSYS2_ROOT}/mingw64/bin"):$(cygpath -u "${QT_ROOT_DIR}/bin"):$PATH"
-          windeployqt --release --no-translations dist/autoremesher.exe
-          # Copy MSYS2 MinGW DLLs next to the exe (recursive until stable — OpenVDB/Qt pull many deps).
           shopt -s nullglob
           changed=1
           round=0
