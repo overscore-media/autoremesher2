@@ -120,7 +120,7 @@ jobs:
 
       - name: Build bundled dependencies
         run: |
-          export PATH="/mingw64/bin:$PATH"
+          ln -s /mingw64/bin/mingw32-make.exe /mingw64/bin/make.exe
           bash ./scripts/build-bundled-deps.sh
         shell: msys2 {0}
 
