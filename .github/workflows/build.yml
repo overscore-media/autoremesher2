@@ -104,6 +104,7 @@ jobs:
             mingw-w64-x86_64-ninja
             mingw-w64-x86_64-openexr
             mingw-w64-x86_64-openvdb
+            mingw-w64-x86_64-tbb
             mingw-w64-x86_64-gmp
             mingw-w64-x86_64-mpfr
             mingw-w64-x86_64-cgal
