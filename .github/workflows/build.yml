@@ -120,6 +120,7 @@ jobs:
 
       - name: Build bundled dependencies
         run: |
+          export PATH="/mingw64/bin:$PATH"
           bash ./scripts/build-bundled-deps.sh
         shell: msys2 {0}
 
