@@ -122,11 +122,12 @@ jobs:
       - name: Build bundled dependencies
         run: |
           ln -s /mingw64/bin/mingw32-make.exe /mingw64/bin/make.exe
-          mkdir -p thirdparty/.artifacts/zlib thirdparty/.artifacts/onetbb/include thirdparty/.artifacts/onetbb/lib
+          mkdir -p thirdparty/.artifacts/zlib thirdparty/.artifacts/onetbb/include thirdparty/.artifacts/onetbb/lib thirdparty/.artifacts/onetbb-build
           cd thirdparty/zlib
           ./configure --prefix="$(pwd)/../.artifacts/zlib" --static
           make -j4
           make install
+          cd ../..
           ln -sf /mingw64/include/oneapi thirdparty/.artifacts/onetbb/include/oneapi
           ln -sf /mingw64/lib/libtbb.dll.a thirdparty/.artifacts/onetbb/lib/libtbb.a
           touch thirdparty/.artifacts/.stamp
