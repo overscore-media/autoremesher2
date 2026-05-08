@@ -107,6 +107,7 @@ jobs:
             mingw-w64-x86_64-openvdb
             mingw-w64-x86_64-gmp
             mingw-w64-x86_64-mpfr
+            mingw-w64-x86_64-git
 
       - name: Bootstrap submodules
         run: |
