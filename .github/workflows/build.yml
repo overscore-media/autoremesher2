@@ -94,6 +94,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup MSYS2
+        id: msys2
         uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
@@ -135,8 +136,17 @@ jobs:
         shell: msys2 {0}
 
       - name: Build project
+        env:
+          MSYS2_ROOT: ${{ steps.msys2.outputs['msys2-location'] }}
         run: |
-          export PATH="$(cygpath -u "$QT_ROOT_DIR")/bin:$PATH"
+          set -e
+          echo "::group::Test for g++ existence"
+          which g++ || true
+          g++ --version || true
+          cmd //c "where g++" || true
+          echo "::endgroup::"
+
+          export PATH="$(cygpath -u "${MSYS2_ROOT}/mingw64/bin"):$(cygpath -u "${QT_ROOT_DIR}/bin"):$PATH"
           qmake autoremesher.pro CONFIG+=release
           mingw32-make -j$(nproc)
         shell: msys2 {0}
