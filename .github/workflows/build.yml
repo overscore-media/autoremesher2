@@ -1,4 +1,4 @@
-name: Build AppImage
+name: Build
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
     types: [published]
 
 jobs:
-  build:
+  build-appimage:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -83,3 +83,63 @@ jobs:
         with:
           files: packaging/appimage/dist/AutoRemesher-x86_64.AppImage
           name: AutoRemesher-${{ github.ref_name }}-x86_64.AppImage
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-qt5-base
+            mingw-w64-x86_64-qt5-tools
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-openexr
+            mingw-w64-x86_64-openvdb
+            mingw-w64-x86_64-gmp
+            mingw-w64-x86_64-mpfr
+
+      - name: Bootstrap submodules
+        run: |
+          git submodule sync --recursive
+          git submodule update --init --recursive
+          bash ./scripts/bootstrap-submodules.sh
+        shell: msys2 {0}
+
+      - name: Build bundled dependencies
+        run: |
+          bash ./scripts/build-bundled-deps.sh
+        shell: msys2 {0}
+
+      - name: Build project
+        run: |
+          qmake autoremesher.pro CONFIG+=release
+          mingw32-make -j$(nproc)
+        shell: msys2 {0}
+
+      - name: Create zip package
+        run: |
+          Compress-Archive -Path autoremesher.exe -DestinationPath AutoRemesher-${{ github.sha }}-x86_64-windows.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: AutoRemesher-${{ github.sha }}-x86_64-windows.zip
+          path: AutoRemesher-${{ github.sha }}-x86_64-windows.zip
+          retention-days: 30
+
+      - name: Upload release asset
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: AutoRemesher-${{ github.sha }}-x86_64-windows.zip
+          name: AutoRemesher-${{ github.ref_name }}-x86_64-windows.zip

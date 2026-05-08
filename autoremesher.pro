@@ -177,13 +177,24 @@ unix:!macx {
     QMAKE_RPATHDIR += $$AUTOREMESHER_BUNDLE_ROOT/onetbb/lib
     LIBS += -L$$AUTOREMESHER_BUNDLE_ROOT/onetbb/lib -ltbb
     LIBS += -L$$AUTOREMESHER_BUNDLE_ROOT/zlib/lib -lz
-    
+
     INCLUDEPATH += /usr/include/OpenEXR
     INCLUDEPATH += /usr/include/openvdb
     CONFIG += link_pkgconfig
     PKGCONFIG += OpenEXR
     INCLUDEPATH += /usr/include/openvdb
     LIBS += -lopenvdb -lgmp -lmpfr -ldl
+}
+
+win32 {
+    INCLUDEPATH += $$AUTOREMESHER_BUNDLE_ROOT/onetbb/include
+    INCLUDEPATH += $$AUTOREMESHER_BUNDLE_ROOT/zlib/include
+    LIBS += -L$$AUTOREMESHER_BUNDLE_ROOT/onetbb/lib -ltbb
+    LIBS += -L$$AUTOREMESHER_BUNDLE_ROOT/zlib/lib -lz
+
+    INCLUDEPATH += /mingw64/include/OpenEXR
+    INCLUDEPATH += /mingw64/include
+    LIBS += -lopenvdb -lgmp -lmpfr
 }
 
 INCLUDEPATH += $$GEOGRAM_SRC
