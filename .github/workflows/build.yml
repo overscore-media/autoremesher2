@@ -149,7 +149,7 @@ jobs:
 
       - name: Create zip package
         run: |
-          Compress-Archive -Path autoremesher.exe -DestinationPath AutoRemesher-${{ github.sha }}-x86_64-windows.zip
+          Compress-Archive -Path release/autoremesher.exe -DestinationPath AutoRemesher-${{ github.sha }}-x86_64-windows.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
