@@ -151,7 +151,7 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path dist | Out-Null
           Copy-Item release/autoremesher.exe dist/autoremesher.exe
-          & "$env:QT_ROOT_DIR\bin\windeployqt.exe" --release --no-translations (Join-Path $PWD 'dist\autoremesher.exe')
+          & "$env:QT_ROOT_DIR\bin\windeployqt.exe" --verbose 2 --no-translations (Join-Path $PWD 'dist\autoremesher.exe')
         shell: pwsh
 
       - name: Bundle MinGW runtime DLLs
