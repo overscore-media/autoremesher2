@@ -189,7 +189,7 @@ unix:!macx {
 win32 {
     INCLUDEPATH += /mingw64/include
     INCLUDEPATH += /mingw64/include/oneapi
-    LIBS += -ltbb
+    LIBS += -ltbb12
     LIBS += -L/mingw64/lib -lz
 
     INCLUDEPATH += /mingw64/include/OpenEXR
