@@ -27,20 +27,20 @@
 #include <QOpenGLPixelTransferOptions>
 #include "ddsfile.h"
 
-typedef quint32 DWORD;
-typedef quint32 UINT;
+// Don't define DWORD or UINT so as to not conflict with Windows build
+typedef quint32 DdsU32;
 
 // DDS pixel format header layout (FourCC and RGB bit masks).
 
 typedef struct {
-    DWORD dwSize;
-    DWORD dwFlags;
-    DWORD dwFourCC;
-    DWORD dwRGBBitCount;
-    DWORD dwRBitMask;
-    DWORD dwGBitMask;
-    DWORD dwBBitMask;
-    DWORD dwABitMask;
+    DdsU32 dwSize;
+    DdsU32 dwFlags;
+    DdsU32 dwFourCC;
+    DdsU32 dwRGBBitCount;
+    DdsU32 dwRBitMask;
+    DdsU32 dwGBitMask;
+    DdsU32 dwBBitMask;
+    DdsU32 dwABitMask;
 } DDS_PIXELFORMAT;
 
 typedef enum {
@@ -55,20 +55,20 @@ typedef enum {
 } DDS_CAPS2_FLAGS;
 
 typedef struct {
-    DWORD           dwSize;
-    DWORD           dwFlags;
-    DWORD           dwHeight;
-    DWORD           dwWidth;
-    DWORD           dwPitchOrLinearSize;
-    DWORD           dwDepth;
-    DWORD           dwMipMapCount;
-    DWORD           dwReserved1[11];
+    DdsU32           dwSize;
+    DdsU32           dwFlags;
+    DdsU32           dwHeight;
+    DdsU32           dwWidth;
+    DdsU32           dwPitchOrLinearSize;
+    DdsU32           dwDepth;
+    DdsU32           dwMipMapCount;
+    DdsU32           dwReserved1[11];
     DDS_PIXELFORMAT ddspf;
-    DWORD           dwCaps;
-    DWORD           dwCaps2;
-    DWORD           dwCaps3;
-    DWORD           dwCaps4;
-    DWORD           dwReserved2;
+    DdsU32           dwCaps;
+    DdsU32           dwCaps2;
+    DdsU32           dwCaps3;
+    DdsU32           dwCaps4;
+    DdsU32           dwReserved2;
 } DDS_HEADER;
 
 typedef enum {
@@ -355,7 +355,7 @@ typedef enum {
     D3D10_RESOURCE_MISC_GDI_COMPATIBLE
 } D3D10_RESOURCE_MISC_FLAG;
 
-static const char *MiscFlagToString(UINT miscFlag)
+static const char *MiscFlagToString(DdsU32 miscFlag)
 {
     static const char *names[] = {
         "D3D10_RESOURCE_MISC_GENERATE_MIPS",
@@ -373,13 +373,13 @@ static const char *MiscFlagToString(UINT miscFlag)
 typedef struct {
     DXGI_FORMAT              dxgiFormat;
     D3D10_RESOURCE_DIMENSION resourceDimension;
-    UINT                     miscFlag;
-    UINT                     arraySize;
-    UINT                     miscFlags2;
+    DdsU32                     miscFlag;
+    DdsU32                     arraySize;
+    DdsU32                     miscFlags2;
 } DDS_HEADER_DXT10;
 
 typedef struct {
-    DWORD               dwMagic;
+    DdsU32               dwMagic;
     DDS_HEADER          header;
     DDS_HEADER_DXT10    header10;
 } DDS_FILE_HEADER;

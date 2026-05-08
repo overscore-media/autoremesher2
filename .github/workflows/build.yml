@@ -106,6 +106,7 @@ jobs:
             mingw-w64-x86_64-openvdb
             mingw-w64-x86_64-gmp
             mingw-w64-x86_64-mpfr
+            mingw-w64-x86_64-cgal
             mingw-w64-x86_64-git
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-make
@@ -139,13 +140,6 @@ jobs:
         env:
           MSYS2_ROOT: ${{ steps.msys2.outputs['msys2-location'] }}
         run: |
-          set -e
-          echo "::group::Test for g++ existence"
-          which g++ || true
-          g++ --version || true
-          cmd //c "where g++" || true
-          echo "::endgroup::"
-
           export PATH="$(cygpath -u "${MSYS2_ROOT}/mingw64/bin"):$(cygpath -u "${QT_ROOT_DIR}/bin"):$PATH"
           qmake autoremesher.pro CONFIG+=release
           mingw32-make -j$(nproc)
