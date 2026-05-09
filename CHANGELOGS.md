@@ -1,3 +1,6 @@
+2.0.1
+- Windows build support (MSYS2/MinGW)
+
 2.0.0
 - Performance and stability improvements
 - Updated dependencies

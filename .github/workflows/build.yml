@@ -86,6 +86,9 @@ jobs:
 
   build-windows:
     runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -101,90 +104,35 @@ jobs:
           update: true
           install: >-
             mingw-w64-x86_64-cmake
-            mingw-w64-x86_64-ninja
-            mingw-w64-x86_64-openexr
-            mingw-w64-x86_64-imath
-            mingw-w64-x86_64-openvdb
-            mingw-w64-x86_64-tbb
-            mingw-w64-x86_64-gmp
-            mingw-w64-x86_64-mpfr
-            mingw-w64-x86_64-cgal
             mingw-w64-x86_64-git
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-make
-
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '5.15.*'
-          target: 'desktop'
-          arch: 'win64_mingw81'
+            mingw-w64-x86_64-qt5-base
+            mingw-w64-x86_64-openvdb
+            mingw-w64-x86_64-openexr
+            mingw-w64-x86_64-imath
+            mingw-w64-x86_64-tbb
+            mingw-w64-x86_64-zlib
+            mingw-w64-x86_64-gmp
+            mingw-w64-x86_64-mpfr
+            mingw-w64-x86_64-cgal
+            zip
 
       - name: Bootstrap submodules
-        run: |
-          git submodule sync --recursive
-          git submodule update --init --recursive
-          bash ./scripts/bootstrap-submodules.sh
-        shell: msys2 {0}
-
-      - name: Build bundled dependencies
-        run: |
-          ln -s /mingw64/bin/mingw32-make.exe /mingw64/bin/make.exe
-          mkdir -p thirdparty/.artifacts/zlib
-          cd thirdparty/zlib
-          ./configure --prefix="$(pwd)/../.artifacts/zlib" --static
-          make -j4
-          make install
-          touch ../.artifacts/.stamp
-        shell: msys2 {0}
+        run: ./scripts/bootstrap-submodules.sh
 
       - name: Build project
-        env:
-          MSYS2_ROOT: ${{ steps.msys2.outputs['msys2-location'] }}
         run: |
-          export PATH="$(cygpath -u "${MSYS2_ROOT}/mingw64/bin"):$(cygpath -u "${QT_ROOT_DIR}/bin"):$PATH"
-          qmake autoremesher.pro CONFIG+=release
+          qmake-qt5 autoremesher.pro CONFIG+=release
           mingw32-make -j$(nproc)
-        shell: msys2 {0}
 
-      - name: Bundle Qt (windeployqt)
-        run: |
-          New-Item -ItemType Directory -Force -Path dist | Out-Null
-          Copy-Item release/autoremesher.exe dist/autoremesher.exe
-          & "$env:QT_ROOT_DIR\bin\windeployqt.exe" --no-translations (Join-Path $PWD 'dist\autoremesher.exe')
-        shell: pwsh
-
-      - name: Bundle MinGW runtime DLLs
-        env:
-          MSYS2_ROOT: ${{ steps.msys2.outputs['msys2-location'] }}
-        run: |
-          set -euo pipefail
-          export PATH="$(cygpath -u "${MSYS2_ROOT}/mingw64/bin"):$(cygpath -u "${QT_ROOT_DIR}/bin"):$PATH"
-          changed=1
-          round=0
-          while [[ "$changed" -eq 1 && "$round" -lt 40 ]]; do
-            changed=0
-            round=$((round + 1))
-            while IFS= read -r -d '' f; do
-              [[ -f "$f" ]] || continue
-              while read -r dll; do
-                dll="${dll//$'\r'/}"
-                [[ -z "$dll" ]] && continue
-                [[ "${dll,,}" == *.dll ]] || continue
-                [[ -f "/mingw64/bin/$dll" ]] || continue
-                if [[ ! -f "dist/$dll" ]]; then
-                  cp "/mingw64/bin/$dll" "dist/$dll"
-                  changed=1
-                fi
-              done < <(objdump -p "$f" 2>/dev/null | awk '/DLL Name:/{print $NF}' || true)
-            done < <(find dist -type f \( -name '*.exe' -o -name '*.dll' \) -print0)
-          done
-        shell: msys2 {0}
+      - name: Bundle dependencies
+        run: ./scripts/bundle-windows-dlls.sh
 
       - name: Create zip package
         run: |
-          Set-Location dist
-          Compress-Archive -Path * -DestinationPath ../AutoRemesher-${{ github.sha }}-x86_64-windows.zip
+          cd dist
+          zip -r ../AutoRemesher-${{ github.sha }}-x86_64-windows.zip .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7

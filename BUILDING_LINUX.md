@@ -1,4 +1,4 @@
-# Building AutoRemesher from source
+# Building AutoRemesher from source (for Linux)
 
 AutoRemesher is a **Qt 5** application (`core`, `widgets`, `opengl`) built with **qmake**. Core libraries include **Geogram 1.9.9**, **Exploragram**, **Eigen**, **libigl**, **OpenVDB**, **CGAL** (GMP/MPFR), and **OpenEXR**. Sources live under `thirdparty/` as **git submodules**; Geogram is patched for this tree (see below).
 
@@ -135,7 +135,7 @@ Requires **`linuxdeployqt`** or **`linuxdeploy`** (+ Qt plugin) on `PATH`. See c
 Human-readable and numeric versions default in **`autoremesher.pro`** (`HUMAN_VERSION`, `VERSION`). Override when invoking qmake if needed:
 
 ```bash
-qmake autoremesher.pro CONFIG+=release HUMAN_VERSION=2.0.0 VERSION=2.0.0.0
+qmake autoremesher.pro CONFIG+=release HUMAN_VERSION=2.0.1 VERSION=2.0.1.0
 ```
 
 **`GEOGRAM_VERSION`** is fixed for this tree (**1.9.9**) in the `.pro` file and must stay aligned with the Geogram submodule tag.

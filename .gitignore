@@ -34,6 +34,18 @@
 # Build folder
 build/
 build2/
+release/
+debug/
+
+# qmake Windows artifacts
+object_script.autoremesher.*
+autoremesher_resource.rc
+autoremesher_resource_res.o
+Makefile.Debug
+Makefile.Release
+
+# Windows bundle output
+dist/
 
 # CMake-installed zlib + oneTBB (see scripts/build-bundled-deps.sh)
 thirdparty/.artifacts/

@@ -5,23 +5,27 @@ DEFINES += AUTO_REMESHER_DEBUG
 DEFINES += QT_MESSAGELOGCONTEXT
 RESOURCES += resources.qrc
 
-CONFIG += object_parallel_to_source
-
 CONFIG(debug, debug|release) OBJECTS_DIR=build
 CONFIG(release, debug|release) OBJECTS_DIR=build
 CONFIG(debug, debug|release) MOC_DIR=build
 CONFIG(release, debug|release) MOC_DIR=build
 
 isEmpty(HUMAN_VERSION) {
-	HUMAN_VERSION = "2.0.0"
+	HUMAN_VERSION = "2.0.1"
 }
 isEmpty(VERSION) {
-	VERSION = 2.0.0.0
+	VERSION = 2.0.1.0
 }
 
 unix {
     PROJECT_PLATFORM = Linux
     ICON = autoremesher.png
+}
+
+win32 {
+    PROJECT_PLATFORM = Windows
+    DESTDIR = build
+    RCC_DIR = build
 }
 
 QMAKE_TARGET_PRODUCT = AutoRemesher
@@ -252,7 +256,10 @@ SOURCES += $$GEOGRAM_SRC/geogram/basic/file_system.cpp
 HEADERS += $$GEOGRAM_SRC/geogram/basic/file_system.h
 SOURCES += $$GEOGRAM_SRC/geogram/basic/logger.cpp
 HEADERS += $$GEOGRAM_SRC/geogram/basic/logger.h
-SOURCES += $$GEOGRAM_SRC/geogram/basic/process_unix.cpp
+
+unix: SOURCES += $$GEOGRAM_SRC/geogram/basic/process_unix.cpp
+win32: SOURCES += $$GEOGRAM_SRC/geogram/basic/process_win.cpp
+
 SOURCES += $$GEOGRAM_SRC/geogram/basic/stopwatch.cpp
 HEADERS += $$GEOGRAM_SRC/geogram/basic/stopwatch.h
 SOURCES += $$GEOGRAM_SRC/geogram/basic/b_stream.cpp
@@ -263,7 +270,6 @@ SOURCES += $$GEOGRAM_SRC/geogram/basic/geofile.cpp
 HEADERS += $$GEOGRAM_SRC/geogram/basic/geofile.h
 SOURCES += $$GEOGRAM_SRC/geogram/basic/numeric.cpp
 HEADERS += $$GEOGRAM_SRC/geogram/basic/numeric.h
-SOURCES += $$GEOGRAM_SRC/geogram/basic/process_win.cpp
 SOURCES += $$GEOGRAM_SRC/geogram/basic/string.cpp
 HEADERS += $$GEOGRAM_SRC/geogram/basic/string.h
 HEADERS += $$GEOGRAM_SRC/geogram/basic/smart_pointer.h

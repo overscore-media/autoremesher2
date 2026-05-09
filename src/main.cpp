@@ -21,7 +21,6 @@
  */
 #include <QApplication>
 #include <QCoreApplication>
-#include <QDesktopWidget>
 #include <QStyleFactory>
 #include <QFontDatabase>
 #include <QDebug>
